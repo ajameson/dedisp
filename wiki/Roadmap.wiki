@@ -1,5 +1,4 @@
 #summary An outline of possible future plans for the library.
-#labels Phase-Requirements
 
 = Introduction =
 
