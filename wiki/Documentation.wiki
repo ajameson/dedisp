@@ -1,5 +1,5 @@
 #summary Documentation for using the library.
-#labels Featured,Phase-Design
+#labels Featured
 
 = Introduction =
 
