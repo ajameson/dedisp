@@ -6,7 +6,7 @@ dedisp provides a simple C interface to computing dedispersion transforms using 
 
 = Dependencies =
 
-The library requires NVIDIA's [http://www.nvidia.com/object/cuda_home_new.html CUDA] in order to access the GPU. This also imposes the constraint that the target hardware must be an NVIDIA GPU.
+The library requires NVIDIA's [http://www.nvidia.com/object/cuda_home_new.html CUDA] in order to access the GPU. This also imposes the constraint that the target hardware must be an NVIDIA GPU. To compile the library you must have the NVIDIA CUDA C compiler _nvcc_ in your path.
 
 = Installation =
 
