@@ -20,4 +20,4 @@ View the API documentation online [http://dedisp.googlecode.com/svn/trunk/html/d
 
 = C++ Interface =
 
-A simple C++ wrapper for the library is also provided; see [http://dedisp.googlecode.com/svn/trunk/src/DedispPlan.hpp DedispPlan.hpp].
+A simple C++ wrapper for the library is also provided; see [http://code.google.com/p/dedisp/source/browse/trunk/src/DedispPlan.hpp DedispPlan.hpp].
