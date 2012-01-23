@@ -16,8 +16,8 @@ If all goes well, the library will be built in the lib/ subdir and the header in
 
 = API Documentation =
 
-View the API documentation online [http://dedisp.googlecode.com/svn/html/dedisp_8h.html here].
+View the API documentation online [http://dedisp.googlecode.com/svn/trunk/html/dedisp_8h.html here].
 
 = C++ Interface =
 
-A simple C++ wrapper for the library is also provided; see [http://dedisp.googlecode.com/svn/src/DedispPlan.hpp DedispPlan.hpp].
+A simple C++ wrapper for the library is also provided; see [http://dedisp.googlecode.com/svn/trunk/src/DedispPlan.hpp DedispPlan.hpp].
