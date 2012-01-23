@@ -1,0 +1,15 @@
+
+dedisp v1.0
+code.google.com/p/dedisp
+
+Developed by Ben Barsdell (2012)
+Email: my name as above no spaces @gmail.com
+
+============
+INSTALLATION
+============
+1) Modify the entries in Makefile.inc to suit your system.
+2) Run make.
+If all goes well, the library will be built in ./lib and the header
+in ./include. If something goes wrong, please let me know either via
+email or the project website.
