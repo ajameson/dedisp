@@ -18,8 +18,7 @@ LIB       := -L$(CUDA_DIR)/$(LIB_ARCH) -lcudart
 
 SOURCES   := $(SRC_DIR)/dedisp.cu
 HEADERS   := $(SRC_DIR)/dedisp.h $(SRC_DIR)/kernels.cuh         \
-             $(SRC_DIR)/gpu_memory.hpp $(SRC_DIR)/transpose.hpp \
-             $(SRC_DIR)/device_mem.hpp
+             $(SRC_DIR)/gpu_memory.hpp $(SRC_DIR)/transpose.hpp
 INTERFACE := $(SRC_DIR)/dedisp.h
 CPP_INTERFACE := $(SRC_DIR)/DedispPlan.hpp
 
