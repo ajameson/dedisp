@@ -4,6 +4,16 @@
 = Introduction =
 dedisp provides a simple C interface to computing dedispersion transforms using a GPU. The interface is modelled on that of the well-known [http://www.fftw.org/ FFTW] library, and uses an object-oriented approach. The user first creates a dedispersion _plan_, and then calls functions to modify or execute that plan. A full list and description of the functions provided by the library can be viewed in the API documentation below.
 
+= Dependencies =
+
+The library requires NVIDIA's [http://www.nvidia.com/object/cuda_home_new.html CUDA] in order to access the GPU. This also imposes the constraint that the target hardware must be an NVIDIA GPU.
+
+= Installation =
+
+ # Modify the entries in Makefile.inc to suit your system.
+ # Run make.
+If all goes well, the library will be built in the lib/ subdir and the header in include/ subdir. If something goes wrong, please let me know either via email or the project website.
+
 = API Documentation =
 
 View the API documentation online [http://dedisp.googlecode.com/svn/html/dedisp_8h.html here].
