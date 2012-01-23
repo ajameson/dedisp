@@ -2,11 +2,12 @@
 #labels Featured
 
 = Introduction =
+dedisp provides a simple C interface to computing dedispersion transforms using a GPU. The interface is modelled on that of the well-known [http://www.fftw.org/ FFTW] library, and uses an object-oriented approach. The user first creates a dedispersion _plan_, and then calls functions to modify or execute that plan. A full list and description of the functions provided by the library can be viewed in the API documentation below.
 
-Here will be examples and a link to the Doxygen API documentation.
+= API Documentation =
 
+View the API documentation online [http://dedisp.googlecode.com/svn/html/dedisp_8h.html here].
 
-= Examples =
+= C++ Interface =
 
-== Example 1 ==
-Coming soon...
+A simple C++ wrapper for the library is also provided; see [http://dedisp.googlecode.com/svn/src/DedispPlan.hpp DedispPlan.hpp].
