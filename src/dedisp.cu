@@ -18,7 +18,7 @@
   This file contains the boring boiler-plate code to manage the library.
 */
 
-#define DEDISP_DEBUG
+//#define DEDISP_DEBUG
 //#define DEDISP_BENCHMARK
 
 #include <dedisp.h>
@@ -92,10 +92,20 @@ unsigned long div_round_up(unsigned long a, unsigned long b) {
 }
 
 // Internal abstraction for errors
+#if defined(DEDISP_DEBUG) && DEDISP_DEBUG
+#define throw_error(error) do {                                         \
+	printf("An error occurred within dedisp on line %d of %s: %s",      \
+	       __LINE__, __FILE__, dedisp_get_error_string(error));         \
+	return error; } while(0)
+#else
+#define throw_error(error) return error
+#endif // DEDISP_DEBUG
+/*
 dedisp_error throw_error(dedisp_error error) {
 	// Note: Could, e.g., put an error callback in here
 	return error;
 }
+*/
 // ------------------------
 
 // Public functions
@@ -110,7 +120,7 @@ dedisp_error dedisp_create_plan(dedisp_plan* plan_,
 	*plan_ = 0;
 	
 	if( cudaGetLastError() != cudaSuccess ) {
-		return throw_error(DEDISP_PRIOR_GPU_ERROR);
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
 	}
 	
 	int device_idx;
@@ -118,12 +128,12 @@ dedisp_error dedisp_create_plan(dedisp_plan* plan_,
 	
 	// Check for parameter errors
 	if( nchans > DEDISP_MAX_NCHANS ) {
-		return throw_error(DEDISP_NCHANS_EXCEEDS_LIMIT);
+		throw_error(DEDISP_NCHANS_EXCEEDS_LIMIT);
 	}
 	
 	dedisp_plan plan = new dedisp_plan_struct();
 	if( !plan ) {
-		return throw_error(DEDISP_MEM_ALLOC_FAILED);
+		throw_error(DEDISP_MEM_ALLOC_FAILED);
 	}
 	
 	plan->dm_count      = 0;
@@ -144,14 +154,14 @@ dedisp_error dedisp_create_plan(dedisp_plan* plan_,
 	}
 	catch(...) {
 		dedisp_destroy_plan(plan);
-		return throw_error(DEDISP_MEM_ALLOC_FAILED);
+		throw_error(DEDISP_MEM_ALLOC_FAILED);
 	}
 	try {
 		plan->d_delay_table = plan->delay_table;
 	}
 	catch(...) {
 		dedisp_destroy_plan(plan);
-		return throw_error(DEDISP_MEM_COPY_FAILED);
+		throw_error(DEDISP_MEM_COPY_FAILED);
 	}
 	
 	// Initialise the killmask
@@ -161,12 +171,12 @@ dedisp_error dedisp_create_plan(dedisp_plan* plan_,
 	}
 	catch(...) {
 		dedisp_destroy_plan(plan);
-		return throw_error(DEDISP_MEM_ALLOC_FAILED);
+		throw_error(DEDISP_MEM_ALLOC_FAILED);
 	}
 	dedisp_error err = dedisp_set_killmask(plan, (dedisp_bool*)0);
 	if( err != DEDISP_NO_ERROR ) {
 		dedisp_destroy_plan(plan);
-		return throw_error(err);
+		throw_error(err);
 	}
 	
 	*plan_ = plan;
@@ -176,7 +186,7 @@ dedisp_error dedisp_create_plan(dedisp_plan* plan_,
 
 dedisp_error dedisp_set_gulp_size(dedisp_plan plan,
                                   dedisp_size gulp_size) {
-	if( !plan ) { return throw_error(DEDISP_INVALID_PLAN); }
+	if( !plan ) { throw_error(DEDISP_INVALID_PLAN); }
 	plan->gulp_size = gulp_size;
 	return DEDISP_NO_ERROR;
 }
@@ -188,12 +198,12 @@ dedisp_error dedisp_set_dm_list(dedisp_plan plan,
                                 const dedisp_float* dm_list,
                                 dedisp_size count)
 {
-	if( !plan ) { return throw_error(DEDISP_INVALID_PLAN); }
+	if( !plan ) { throw_error(DEDISP_INVALID_PLAN); }
 	if( !dm_list ) {
-		return throw_error(DEDISP_INVALID_POINTER);
+		throw_error(DEDISP_INVALID_POINTER);
 	}
 	if( cudaGetLastError() != cudaSuccess ) {
-		return throw_error(DEDISP_PRIOR_GPU_ERROR);
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
 	}
 	
 	plan->dm_count = count;
@@ -203,11 +213,11 @@ dedisp_error dedisp_set_dm_list(dedisp_plan plan,
 	try {
 		plan->d_dm_list.resize(plan->dm_count);
 	}
-	catch(...) { return throw_error(DEDISP_MEM_ALLOC_FAILED); }
+	catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 	try {
 		plan->d_dm_list = plan->dm_list;
 	}
-	catch(...) { return throw_error(DEDISP_MEM_COPY_FAILED); }
+	catch(...) { throw_error(DEDISP_MEM_COPY_FAILED); }
 	
 	// Calculate the maximum delay and store it in the plan
 	plan->max_delay = (dedisp_size)(plan->dm_list[plan->dm_count-1] *
@@ -220,9 +230,9 @@ dedisp_error dedisp_generate_dm_list(dedisp_plan plan,
                                      dedisp_float dm_start, dedisp_float dm_end,
                                      dedisp_float ti, dedisp_float tol)
 {
-	if( !plan ) { return throw_error(DEDISP_INVALID_PLAN); }
+	if( !plan ) { throw_error(DEDISP_INVALID_PLAN); }
 	if( cudaGetLastError() != cudaSuccess ) {
-		return throw_error(DEDISP_PRIOR_GPU_ERROR);
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
 	}
 	
 	// Generate the DM list (on the host)
@@ -237,11 +247,11 @@ dedisp_error dedisp_generate_dm_list(dedisp_plan plan,
 	try {
 		plan->d_dm_list.resize(plan->dm_count);
 	}
-	catch(...) { return throw_error(DEDISP_MEM_ALLOC_FAILED); }
+	catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 	try {
 		plan->d_dm_list = plan->dm_list;
 	}
-	catch(...) { return throw_error(DEDISP_MEM_COPY_FAILED); }
+	catch(...) { throw_error(DEDISP_MEM_COPY_FAILED); }
 	
 	// Calculate the maximum delay and store it in the plan
 	plan->max_delay = dedisp_size(plan->dm_list[plan->dm_count-1] *
@@ -252,7 +262,7 @@ dedisp_error dedisp_generate_dm_list(dedisp_plan plan,
 
 dedisp_error dedisp_set_device(int device_idx) {
 	if( cudaGetLastError() != cudaSuccess ) {
-		return throw_error(DEDISP_PRIOR_GPU_ERROR);
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
 	}
 	
 	cudaError_t error = cudaSetDevice(device_idx);
@@ -260,20 +270,20 @@ dedisp_error dedisp_set_device(int device_idx) {
 	//         it still gets returned :/
 	if( cudaErrorInvalidDevice == error ||
 		cudaErrorInvalidValue == error )
-		return throw_error(DEDISP_INVALID_DEVICE_INDEX);
+		throw_error(DEDISP_INVALID_DEVICE_INDEX);
 	else if( cudaErrorSetOnActiveProcess == error )
-		return throw_error(DEDISP_DEVICE_ALREADY_SET);
+		throw_error(DEDISP_DEVICE_ALREADY_SET);
 	else if( cudaSuccess != error )
-		return throw_error(DEDISP_UNKNOWN_ERROR);
+		throw_error(DEDISP_UNKNOWN_ERROR);
 	else
 		return DEDISP_NO_ERROR;
 }
 
 dedisp_error dedisp_set_killmask(dedisp_plan plan, const dedisp_bool* killmask)
 {
-	if( !plan ) { return throw_error(DEDISP_INVALID_PLAN); }
+	if( !plan ) { throw_error(DEDISP_INVALID_PLAN); }
 	if( cudaGetLastError() != cudaSuccess ) {
-		return throw_error(DEDISP_PRIOR_GPU_ERROR);
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
 	}
 	if( 0 != killmask ) {
 		// Copy killmask to plan (both host and device)
@@ -281,7 +291,7 @@ dedisp_error dedisp_set_killmask(dedisp_plan plan, const dedisp_bool* killmask)
 		try {
 			plan->d_killmask = plan->killmask;
 		}
-		catch(...) { return throw_error(DEDISP_MEM_COPY_FAILED); }
+		catch(...) { throw_error(DEDISP_MEM_COPY_FAILED); }
 	}
 	else {
 		// Set the killmask to all true
@@ -339,9 +349,9 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
                                  dedisp_size        dm_count,
                                  unsigned           flags)
 {
-	if( !plan ) { return throw_error(DEDISP_INVALID_PLAN); }
+	if( !plan ) { throw_error(DEDISP_INVALID_PLAN); }
 	if( cudaGetLastError() != cudaSuccess ) {
-		return throw_error(DEDISP_PRIOR_GPU_ERROR);
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
 	}
 	
 	enum {
@@ -353,23 +363,23 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	                                                BITS_PER_BYTE);
 	
 	if( 0 == in || 0 == out ) {
-		return throw_error(DEDISP_INVALID_POINTER);
+		throw_error(DEDISP_INVALID_POINTER);
 	}
 	// Note: Must be careful with integer division
 	if( in_stride < plan->nchans*in_nbits/(sizeof(dedisp_byte)*BITS_PER_BYTE) ||
 	    out_stride < (nsamps - plan->max_delay)*out_bytes_per_sample ) {
-		return throw_error(DEDISP_INVALID_STRIDE);
+		throw_error(DEDISP_INVALID_STRIDE);
 	}
 	if( 0 == plan->dm_count ) {
-		return throw_error(DEDISP_NO_DM_LIST_SET);
+		throw_error(DEDISP_NO_DM_LIST_SET);
 	}
 	if( nsamps < plan->max_delay ) {
-		return throw_error(DEDISP_TOO_FEW_NSAMPS);
+		throw_error(DEDISP_TOO_FEW_NSAMPS);
 	}
 	
 	// Check for valid synchronisation flags
 	if( flags & DEDISP_ASYNC && flags & DEDISP_WAIT ) {
-		return throw_error(DEDISP_INVALID_FLAG_COMBINATION);
+		throw_error(DEDISP_INVALID_FLAG_COMBINATION);
 	}
 	
 	// Check for valid nbits values
@@ -379,17 +389,17 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	    in_nbits  != 8 &&
 	    in_nbits  != 16 &&
 	    in_nbits  != 32 ) {
-		return throw_error(DEDISP_UNSUPPORTED_IN_NBITS);
+		throw_error(DEDISP_UNSUPPORTED_IN_NBITS);
 	}
 	if( out_nbits != 8 &&
 	    out_nbits != 16 &&
 	    out_nbits != 32 ) {
-		return throw_error(DEDISP_UNSUPPORTED_OUT_NBITS);
+		throw_error(DEDISP_UNSUPPORTED_OUT_NBITS);
 	}
 	
 	bool using_host_memory;
 	if( flags & DEDISP_HOST_POINTERS && flags & DEDISP_DEVICE_POINTERS ) {
-		return throw_error(DEDISP_INVALID_FLAG_COMBINATION);
+		throw_error(DEDISP_INVALID_FLAG_COMBINATION);
 	}
 	else {
 		using_host_memory = !(flags & DEDISP_DEVICE_POINTERS);
@@ -399,12 +409,12 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	if( !copy_device_to_symbol("c_delay_table",
 	                           thrust::raw_pointer_cast(&plan->d_delay_table[0]),
 	                           plan->nchans) ) {
-		return throw_error(DEDISP_MEM_COPY_FAILED);
+		throw_error(DEDISP_MEM_COPY_FAILED);
 	}
 	if( !copy_device_to_symbol("c_killmask",
 	                           thrust::raw_pointer_cast(&plan->d_killmask[0]),
 	                           plan->nchans) ) {
-		return throw_error(DEDISP_MEM_COPY_FAILED);
+		throw_error(DEDISP_MEM_COPY_FAILED);
 	}
 	
 	// Compute the problem decomposition
@@ -421,7 +431,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	
 	// Just to be sure
 	if( nsamps_computed_gulp_max < plan->max_delay ) {
-		return throw_error(DEDISP_TOO_FEW_NSAMPS);
+		throw_error(DEDISP_TOO_FEW_NSAMPS);
 	}
 	
 	// Compute derived counts for maximum gulp size
@@ -458,7 +468,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	// Allocate temporary buffers on the device where necessary
 	if( using_host_memory || !friendly_in_stride ) {
 		try { d_in_buf.resize(in_count_gulp_max); }
-		catch(...) { return throw_error(DEDISP_MEM_ALLOC_FAILED); }
+		catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 		d_in = thrust::raw_pointer_cast(&d_in_buf[0]);
 	}
 	else {
@@ -466,14 +476,14 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	}
 	if( using_host_memory ) {
 		try { d_out_buf.resize(out_count_gulp_max); }
-		catch(...) { return throw_error(DEDISP_MEM_ALLOC_FAILED); }
+		catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 		d_out = thrust::raw_pointer_cast(&d_out_buf[0]);
 	}
 	else {
 		d_out = out;
 	}
 	try { d_transposed_buf.resize(in_count_padded_gulp_max); }
-	catch(...) { return throw_error(DEDISP_MEM_ALLOC_FAILED); }
+	catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 	d_transposed = thrust::raw_pointer_cast(&d_transposed_buf[0]);
 	// -------------------------------
 	
@@ -490,7 +500,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	thrust::device_vector<dedisp_word> d_intermediate_buf;
 	try { d_intermediate_buf.resize(nsamps_padded_gulp_max * sb_count
 	                                * nom_dm_count); }
-	catch(...) { return throw_error(DEDISP_MEM_ALLOC_FAILED); }
+	catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 	dedisp_word* d_intermediate = thrust::raw_pointer_cast(&d_intermediate_buf[0]);
 	
 #endif //  USE_SUBBAND_ALGORITHM
@@ -529,7 +539,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 			                            in_stride,
 			                            nchan_words * BYTES_PER_WORD,
 			                            nsamps_gulp) ) {
-				return throw_error(DEDISP_MEM_COPY_FAILED);
+				throw_error(DEDISP_MEM_COPY_FAILED);
 			}
 		}
 		else if( !friendly_in_stride ) {
@@ -540,7 +550,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 			                              in_stride,
 			                              nchan_words * BYTES_PER_WORD,
 			                              nsamps_gulp) ) {
-				return throw_error(DEDISP_MEM_COPY_FAILED);
+				throw_error(DEDISP_MEM_COPY_FAILED);
 			}
 		}
 #ifdef DEDISP_BENCHMARK
@@ -598,7 +608,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		                batch_dm_stride,
 		                batch_chan_stride,
 		                batch_out_stride) ) {
-			return throw_error(DEDISP_INTERNAL_GPU_ERROR);
+			throw_error(DEDISP_INTERNAL_GPU_ERROR);
 		}
 		
 		batch_size = nom_dm_count;
@@ -636,7 +646,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		                batch_dm_stride,
 		                batch_chan_stride,
 		                batch_out_stride) ) {
-			return throw_error(DEDISP_INTERNAL_GPU_ERROR);
+			throw_error(DEDISP_INTERNAL_GPU_ERROR);
 		}
 #else // Use direct algorithm
 		// Perform direct dedispersion
@@ -653,7 +663,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		                out_stride_gulp_samples,
 		                out_nbits,
 		                1, 0, 0, 0, 0) ) {
-			return throw_error(DEDISP_INTERNAL_GPU_ERROR);
+			throw_error(DEDISP_INTERNAL_GPU_ERROR);
 		}
 
 #endif // SB/direct algorithm
@@ -759,7 +769,7 @@ dedisp_error dedisp_execute(const dedisp_plan  plan,
 dedisp_error dedisp_sync(void)
 {
 	if( cudaThreadSynchronize() != cudaSuccess )
-		return throw_error(DEDISP_PRIOR_GPU_ERROR);
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
 	else
 		return DEDISP_NO_ERROR;
 }

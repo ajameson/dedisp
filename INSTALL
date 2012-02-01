@@ -13,3 +13,11 @@ INSTALLATION
 If all goes well, the library will be built in ./lib and the header
 in ./include. If something goes wrong, please let me know either via
 email or the project website.
+
+=========
+DEBUGGING
+=========
+The following make flag command can be used to build the library in a
+debug mode, which will print the location and description of errors as
+they happen:
+$ make DEDISP_DEBUG=1

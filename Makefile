@@ -11,7 +11,7 @@ SRC_DIR   := src
 #INC_DIR   := ./include
 OPTIMISE  := -O3
 # Note: Using -G makes the GPU kernel 16x slower!
-DEBUG     := -g# -G
+DEBUG     := -g -DDEDISP_DEBUG=$(DEDISP_DEBUG) #-G
 
 INCLUDE   := -I$(SRC_DIR) #-I$(THRUST_DIR)
 LIB       := -L$(CUDA_DIR)/$(LIB_ARCH) -lcudart
