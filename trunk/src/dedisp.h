@@ -61,9 +61,11 @@ typedef struct dedisp_plan_struct* dedisp_plan;
 /*! \typedef dedisp_size
  * The size data-type used by the library to store sizes/dimensions. */
 /*! \typedef dedisp_bool
- * The boolean data-type used by the library. */
+ * The boolean data-type used by the library. Note that this type is
+     implementation-defined and may not be equivalent to 'bool'. */
 /*! \typedef dedisp_plan
- * The plan type used by the library to reference a dedispersion plan. This is an opaque pointer type. */
+ * The plan type used by the library to reference a dedispersion plan.
+     This is an opaque pointer type. */
 
 // Flags
 // -----
