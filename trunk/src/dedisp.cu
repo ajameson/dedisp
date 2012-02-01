@@ -96,9 +96,14 @@ unsigned long div_round_up(unsigned long a, unsigned long b) {
 #define throw_error(error) do {                                         \
 	printf("An error occurred within dedisp on line %d of %s: %s",      \
 	       __LINE__, __FILE__, dedisp_get_error_string(error));         \
-	return error; } while(0)
+	return (error); } while(0)
+#define throw_getter_error(error, retval) do {                          \
+	printf("An error occurred within dedisp on line %d of %s: %s",      \
+	       __LINE__, __FILE__, dedisp_get_error_string(error));         \
+	return (retval); } while(0)
 #else
 #define throw_error(error) return error
+#define throw_getter_error(error, retval) return retval
 #endif // DEDISP_DEBUG
 /*
 dedisp_error throw_error(dedisp_error error) {
@@ -195,6 +200,7 @@ dedisp_error dedisp_set_gulp_size(dedisp_plan plan,
 	return DEDISP_NO_ERROR;
 }
 dedisp_size dedisp_get_gulp_size(dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->gulp_size;
 }
 
@@ -316,27 +322,35 @@ dedisp_plan dedisp_set_stream(dedisp_plan plan, StreamType stream)
 // Getters
 // -------
 dedisp_size         dedisp_get_max_delay(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->max_delay;
 }
 dedisp_size         dedisp_get_channel_count(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->nchans;
 }
 dedisp_size         dedisp_get_dm_count(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->dm_count;
 }
 const dedisp_float* dedisp_get_dm_list(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return &plan->dm_list[0];
 }
 const dedisp_bool*  dedisp_get_killmask(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return &plan->killmask[0];
 }
 dedisp_float        dedisp_get_dt(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->dt;
 }
 dedisp_float        dedisp_get_f0(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->f0;
 }
 dedisp_float        dedisp_get_df(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->df;
 }
 
