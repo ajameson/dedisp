@@ -33,6 +33,10 @@
 #include <fstream>
 #endif
 
+#if defined(DEDISP_DEBUG) && DEDISP_DEBUG
+#include <stdio.h> // For printf
+#endif
+
 // TODO: Remove these when done benchmarking
 // -----------------------------------------
 #if defined(DEDISP_BENCHMARK)
