@@ -54,7 +54,8 @@ typedef int                        dedisp_bool;
 typedef struct dedisp_plan_struct* dedisp_plan;
 
 /*! \typedef dedisp_float
- * The floating-point data-type used by the library. */
+ * The floating-point data-type used by the library. This is currently
+     guaranteed to be equivalent to 'float'.*/
 /*! \typedef dedisp_byte
  * The byte data-type used by the library to store time-series data. */
 /*! \typedef dedisp_size
