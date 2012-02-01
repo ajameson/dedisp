@@ -14,6 +14,13 @@ The library requires NVIDIA's [http://www.nvidia.com/object/cuda_home_new.html C
  # Run make.
 If all goes well, the library will be built in the lib/ subdir and the header in include/ subdir. If something goes wrong, please let me know either via email or the project website.
 
+= Debugging =
+
+The following make flag can be used to build the library in a
+debug mode, which will print the location and description of errors as
+they happen:
+`$ make DEDISP_DEBUG=1`
+
 = API Documentation =
 
 View the API documentation online [http://dedisp.googlecode.com/svn/trunk/html/dedisp_8h.html here].
