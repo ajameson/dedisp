@@ -17,4 +17,6 @@ RM         = rm
 ECHO       = echo
 MKFLAGS    = 
 
+DEDISP_DEBUG = 1
+
 #.SILENT :
