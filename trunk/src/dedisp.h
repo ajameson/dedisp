@@ -138,7 +138,7 @@ typedef enum {
  *  \param nchans Number of frequency channels
  *  \param dt Time difference between two consecutive samples
  *  \param f0 Frequency of the first (i.e., highest frequency) channel
- *  \param df Frequency difference between two consecutive channels (must be negative)
+ *  \param df Frequency difference between two consecutive channels
  *  \return One of the following error codes: \n
  *  \p DEDISP_NO_ERROR, \p DEDISP_NCHANS_EXCEEDS_LIMIT,
  *  \p DEDISP_MEM_ALLOC_FAILED, \p DEDISP_MEM_COPY_FAILED,

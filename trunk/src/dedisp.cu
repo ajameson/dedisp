@@ -133,9 +133,7 @@ dedisp_error dedisp_create_plan(dedisp_plan* plan_,
 	
 	// Force the df parameter to be negative such that
 	//   freq[chan] = f0 + chan * df.
-	if( df > 0 ) {
-		df = -df;
-	}
+	df = -abs(df);
 	
 	dedisp_plan plan = new dedisp_plan_struct();
 	if( !plan ) {
