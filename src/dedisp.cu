@@ -131,6 +131,12 @@ dedisp_error dedisp_create_plan(dedisp_plan* plan_,
 		throw_error(DEDISP_NCHANS_EXCEEDS_LIMIT);
 	}
 	
+	// Force the df parameter to be negative such that
+	//   freq[chan] = f0 + chan * df.
+	if( df > 0 ) {
+		df = -df;
+	}
+	
 	dedisp_plan plan = new dedisp_plan_struct();
 	if( !plan ) {
 		throw_error(DEDISP_MEM_ALLOC_FAILED);

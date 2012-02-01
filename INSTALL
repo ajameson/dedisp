@@ -17,7 +17,7 @@ email or the project website.
 =========
 DEBUGGING
 =========
-The following make flag command can be used to build the library in a
-debug mode, which will print the location and description of errors as
-they happen:
+The following make flag can be used to build the library in a debug
+mode, which will print the location and description of errors as they
+happen:
 $ make DEDISP_DEBUG=1
