@@ -19,6 +19,7 @@ If all goes well, the library will be built in the lib/ subdir and the header in
 The following make flag can be used to build the library in a
 debug mode, which will print the location and description of errors as
 they happen:
+
 `$ make DEDISP_DEBUG=1`
 
 = API Documentation =
