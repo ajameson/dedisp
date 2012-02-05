@@ -23,6 +23,9 @@
 
 #include <vector> // For generate_dm_list
 
+#include <thrust/transform.h> // For scrunch_x2
+#include <thrust/iterator/counting_iterator.h>
+
 // Kernel tuning parameters
 #define DEDISP_BLOCK_SIZE       256 // 256 best for direct, 128 best for sub-band
 #define DEDISP_BLOCK_SAMPS      8   // 8 best for direct, 16 best for sub-band
@@ -323,8 +326,8 @@ bool dedisperse(const dedisp_word*  d_in,
 	// Note: Block dimensions x and y represent time samples and DMs respectively
 	dim3 block(BLOCK_DIM_X,
 			   BLOCK_DIM_Y);
-	// Note: Grid dimension x represents time samples and DMs flattened
-	//         together. Dimension y is used for batch jobs.
+	// Note: Grid dimension x represents time samples. Dimension y represents
+	//         DMs and batch jobs flattened together.
 	
 	// Divide and round up
 	dedisp_size nsamp_blocks = (nsamps - 1)   
@@ -404,4 +407,108 @@ bool dedisperse(const dedisp_word*  d_in,
 #endif // DEDISP_DEBUG
 	
 	return true;
+}
+
+
+template<typename WordType>
+struct scrunch_x2_functor
+	: public thrust::unary_function<unsigned int,WordType> {
+	const WordType* in;
+	int             nbits;
+	WordType        mask;
+	unsigned int    in_nsamps;
+	unsigned int    out_nsamps;
+	scrunch_x2_functor(const WordType* in_, int nbits_, unsigned int in_nsamps_)
+		: in(in_), nbits(nbits_), mask((1<<nbits)-1),
+		  in_nsamps(in_nsamps_), out_nsamps(in_nsamps_/2) {}
+	inline __host__ __device__
+	WordType operator()(unsigned int out_i) const {
+		unsigned int c     = out_i / out_nsamps;
+		unsigned int out_t = out_i % out_nsamps;
+		unsigned int in_t0 = out_t * 2;
+		unsigned int in_t1 = out_t * 2 + 1;
+		unsigned int in_i0 = c * in_nsamps + in_t0;
+		unsigned int in_i1 = c * in_nsamps + in_t1;
+		
+		dedisp_word in0 = in[in_i0];
+		dedisp_word in1 = in[in_i1];
+		dedisp_word out = 0;
+		for( int k=0; k<sizeof(WordType)*8; k+=nbits ) {
+			dedisp_word s0 = (in0 >> k) & mask;
+			dedisp_word s1 = (in1 >> k) & mask;
+			dedisp_word avg = (s0 + s1) / 2;
+			out |= avg << k;
+		}
+		return out;
+	}
+};
+
+// Reduces the time resolution by 2x
+dedisp_error scrunch_x2(const dedisp_word* d_in,
+                        dedisp_size nsamps,
+                        dedisp_size nchan_words,
+                        dedisp_size nbits,
+                        dedisp_word* d_out)
+{
+	thrust::device_ptr<dedisp_word> d_out_begin(d_out);
+	
+	dedisp_size out_nsamps = nsamps / 2;
+	dedisp_size out_count  = out_nsamps * nchan_words;
+	
+	using thrust::make_counting_iterator;
+	
+	thrust::transform(make_counting_iterator<unsigned int>(0),
+	                  make_counting_iterator<unsigned int>(out_count),
+	                  d_out_begin,
+	                  scrunch_x2_functor<dedisp_word>(d_in, nbits, nsamps));
+	
+	return DEDISP_NO_ERROR;
+}
+
+dedisp_float get_smearing(dedisp_float dt, dedisp_float pulse_width,
+                          dedisp_float f0, dedisp_size nchans, dedisp_float df,
+                          dedisp_float DM, dedisp_float deltaDM) {
+	dedisp_float W         = pulse_width;
+	dedisp_float BW        = nchans * abs(df);
+	dedisp_float fc        = f0 - BW/2;
+	dedisp_float inv_fc3   = 1./(fc*fc*fc);
+	dedisp_float t_DM      = 8.3*BW*DM*inv_fc3;
+	dedisp_float t_deltaDM = 8.3/4*BW*nchans*deltaDM*inv_fc3;
+	dedisp_float t_smear   = sqrt(dt*dt + W*W + t_DM*t_DM + t_deltaDM*t_deltaDM);
+	return t_smear;
+}
+
+dedisp_error generate_scrunch_list(dedisp_size* scrunch_list,
+                                   dedisp_size dm_count,
+                                   dedisp_float dt0,
+                                   const dedisp_float* dm_list,
+                                   dedisp_size nchans,
+                                   dedisp_float f0, dedisp_float df,
+                                   dedisp_float pulse_width,
+                                   dedisp_float tol) {
+	// Note: This algorithm always starts with no scrunching and is only
+	//         able to 'adapt' the scrunching by doubling in any step.
+	
+	scrunch_list[0] = 1;
+	for( dedisp_size d=1; d<dm_count; ++d ) {
+		dedisp_float dm = dm_list[d];
+		dedisp_float delta_dm = dm - dm_list[d-1];
+		
+		dedisp_float smearing = get_smearing(scrunch_list[d-1] * dt0,
+		                                 pulse_width*1e-6,
+		                                 f0, nchans, df,
+		                                 dm, delta_dm);
+		dedisp_float smearing2 = get_smearing(scrunch_list[d-1] * 2 * dt0,
+		                                  pulse_width*1e-6,
+		                                  f0, nchans, df,
+		                                  dm, delta_dm);
+		if( smearing2 / smearing < tol ) {
+			scrunch_list[d] = scrunch_list[d-1] * 2;
+		}
+		else {
+			scrunch_list[d] = scrunch_list[d-1];
+		}
+	}
+	
+	return DEDISP_NO_ERROR;
 }
