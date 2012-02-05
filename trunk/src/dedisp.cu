@@ -28,6 +28,9 @@
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+// For copying and scrunching the DM list
+#include <thrust/transform.h>
+#include <thrust/iterator/constant_iterator.h>
 
 #ifdef DEDISP_BENCHMARK
 #include <fstream>
@@ -77,14 +80,21 @@ struct dedisp_plan_struct {
 	dedisp_float f0;
 	dedisp_float df;
 	// Host arrays
-	std::vector<dedisp_float> dm_list;
-	std::vector<dedisp_float> delay_table;
-	std::vector<dedisp_bool>  killmask;
+	std::vector<dedisp_float> dm_list;      // size = dm_count
+	std::vector<dedisp_float> delay_table;  // size = nchans
+	std::vector<dedisp_bool>  killmask;     // size = nchans
+	std::vector<dedisp_size>  scrunch_list; // size = dm_count
 	// Device arrays
 	thrust::device_vector<dedisp_float> d_dm_list;
 	thrust::device_vector<dedisp_float> d_delay_table;
-	thrust::device_vector<dedisp_bool> d_killmask;
+	thrust::device_vector<dedisp_bool>  d_killmask;
+	thrust::device_vector<dedisp_size>  d_scrunch_list;
 	//StreamType stream;
+	// Scrunching parameters
+	dedisp_bool  scrunching_enabled;
+	dedisp_float pulse_width;
+	dedisp_float scrunch_tol;
+	
 };
 
 // Private helper functions
@@ -115,6 +125,47 @@ dedisp_error throw_error(dedisp_error error) {
 	return error;
 }
 */
+
+dedisp_error update_scrunch_list(dedisp_plan plan) {
+	if( cudaGetLastError() != cudaSuccess ) {
+		throw_error(DEDISP_PRIOR_GPU_ERROR);
+	}
+	if( !plan->scrunching_enabled || 0 == plan->dm_count ) {
+		plan->scrunch_list.resize(0);
+		// Fill with 1's by default for safety
+		plan->scrunch_list.resize(plan->dm_count, dedisp_size(1));
+		return DEDISP_NO_ERROR;
+	}
+	plan->scrunch_list.resize(plan->dm_count);
+	dedisp_error error = generate_scrunch_list(&plan->scrunch_list[0],
+	                                           plan->dm_count,
+	                                           plan->dt,
+	                                           &plan->dm_list[0],
+	                                           plan->nchans,
+	                                           plan->f0,
+	                                           plan->df,
+	                                           plan->pulse_width,
+	                                           plan->scrunch_tol);
+	if( error != DEDISP_NO_ERROR ) {
+		return error;
+	}
+	
+	// Allocate on and copy to the device
+	try {
+		plan->d_scrunch_list.resize(plan->dm_count);
+	}
+	catch(...) {
+		throw_error(DEDISP_MEM_ALLOC_FAILED);
+	}
+	try {
+		plan->d_scrunch_list = plan->scrunch_list;
+	}
+	catch(...) {
+		throw_error(DEDISP_MEM_COPY_FAILED);
+	}
+	
+	return DEDISP_NO_ERROR;
+}
 // ------------------------
 
 // Public functions
@@ -237,6 +288,11 @@ dedisp_error dedisp_set_dm_list(dedisp_plan plan,
 	plan->max_delay = (dedisp_size)(plan->dm_list[plan->dm_count-1] *
 	                                plan->delay_table[plan->nchans-1] + 0.5);
 	
+	dedisp_error error = update_scrunch_list(plan);
+	if( error != DEDISP_NO_ERROR ) {
+		throw_error(error);
+	}
+	
 	return DEDISP_NO_ERROR;
 }
 
@@ -270,6 +326,11 @@ dedisp_error dedisp_generate_dm_list(dedisp_plan plan,
 	// Calculate the maximum delay and store it in the plan
 	plan->max_delay = dedisp_size(plan->dm_list[plan->dm_count-1] *
 								  plan->delay_table[plan->nchans-1] + 0.5);
+	
+	dedisp_error error = update_scrunch_list(plan);
+	if( error != DEDISP_NO_ERROR ) {
+		throw_error(error);
+	}
 	
 	return DEDISP_NO_ERROR;
 }
@@ -327,6 +388,7 @@ dedisp_plan dedisp_set_stream(dedisp_plan plan, StreamType stream)
 // -------
 dedisp_size         dedisp_get_max_delay(const dedisp_plan plan) {
 	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
+	if( 0 == plan->dm_count ) { throw_getter_error(DEDISP_NO_DM_LIST_SET,0); }
 	return plan->max_delay;
 }
 dedisp_size         dedisp_get_channel_count(const dedisp_plan plan) {
@@ -339,6 +401,7 @@ dedisp_size         dedisp_get_dm_count(const dedisp_plan plan) {
 }
 const dedisp_float* dedisp_get_dm_list(const dedisp_plan plan) {
 	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
+	if( 0 == plan->dm_count ) { throw_getter_error(DEDISP_NO_DM_LIST_SET,0); }
 	return &plan->dm_list[0];
 }
 const dedisp_bool*  dedisp_get_killmask(const dedisp_plan plan) {
@@ -504,10 +567,15 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	else {
 		d_out = out;
 	}
-	try { d_transposed_buf.resize(in_count_padded_gulp_max); }
+	// Note: * 2 here is for the time-scrunched copies of the data
+	try { d_transposed_buf.resize(in_count_padded_gulp_max * 2); }
 	catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 	d_transposed = thrust::raw_pointer_cast(&d_transposed_buf[0]);
 	// -------------------------------
+	
+	// The stride (in words) between differently-scrunched copies of the
+	//   transposed data.
+	dedisp_size scrunch_stride = in_count_padded_gulp_max;
 	
 #ifdef USE_SUBBAND_ALGORITHM
 	
@@ -593,6 +661,21 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		kernel_timer.start();
 #endif
 		
+		// Compute time-scrunched copies of the data
+		if( plan->scrunching_enabled ) {
+			dedisp_size max_scrunch = plan->scrunch_list[plan->dm_count-1];
+			dedisp_size scrunch_in_offset  = 0;
+			dedisp_size scrunch_out_offset = scrunch_stride;
+			for( dedisp_size s=2; s<=max_scrunch; s*=2 ) {
+				// TODO: Need to pass in stride and count? I.e., nsamps_padded/computed_gulp
+				scrunch_x2(&d_transposed[scrunch_in_offset],
+				           nsamps_padded_gulp/s, nchan_words, in_nbits,
+				           &d_transposed[scrunch_out_offset]);
+				scrunch_in_offset = scrunch_out_offset;
+				scrunch_out_offset += scrunch_stride / s;
+			}
+		}
+		
 #ifdef USE_SUBBAND_ALGORITHM
 		dedisp_size chan_stride       = 1;
 		dedisp_size dm_stride         = dm_size;
@@ -604,12 +687,12 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		dedisp_size batch_out_stride  = nsamps_padded_gulp;
 		
 		/* // Consistency checks
-		if( (nom_dm_count-1)*dm_stride + (batch_size-1)*batch_dm_stride >= dm_count ) {
-			throw std::runtime_error("DM STRIDES ARE INCONSISTENT");
-		}
-		if( (sb_size-1)*chan_stride + (batch_size-1)*batch_chan_stride >= plan->nchans ) {
-			throw std::runtime_error("CHAN STRIDES ARE INCONSISTENT");
-		}
+		   if( (nom_dm_count-1)*dm_stride + (batch_size-1)*batch_dm_stride >= dm_count ) {
+		   throw std::runtime_error("DM STRIDES ARE INCONSISTENT");
+		   }
+		   if( (sb_size-1)*chan_stride + (batch_size-1)*batch_chan_stride >= plan->nchans ) {
+		   throw std::runtime_error("CHAN STRIDES ARE INCONSISTENT");
+		   }
 		*/
 		
 		// Both steps
@@ -643,12 +726,12 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		batch_out_stride  = out_stride_gulp_samples * dm_size;
 		
 		/* // Consistency checks
-		if( (dm_size-1)*dm_stride + (batch_size-1)*batch_dm_stride >= dm_count ) {
-			throw std::runtime_error("DM STRIDES ARE INCONSISTENT");
-		}
-		if( (sb_count-1)*chan_stride + (batch_size-1)*batch_chan_stride >= plan->nchans ) {
-			throw std::runtime_error("CHAN STRIDES ARE INCONSISTENT");
-		}
+		   if( (dm_size-1)*dm_stride + (batch_size-1)*batch_dm_stride >= dm_count ) {
+		   throw std::runtime_error("DM STRIDES ARE INCONSISTENT");
+		   }
+		   if( (sb_count-1)*chan_stride + (batch_size-1)*batch_chan_stride >= plan->nchans ) {
+		   throw std::runtime_error("CHAN STRIDES ARE INCONSISTENT");
+		   }
 		*/
 		
 		if( !dedisperse(d_intermediate,
@@ -671,23 +754,69 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 			throw_error(DEDISP_INTERNAL_GPU_ERROR);
 		}
 #else // Use direct algorithm
-		// Perform direct dedispersion
-		if( !dedisperse(d_transposed,
-		                nsamps_padded_gulp,
-		                nsamps_computed_gulp,
-		                in_nbits,
-		                plan->nchans,
-		                1,
-		                thrust::raw_pointer_cast(&plan->d_dm_list[first_dm_idx]),
-		                dm_count,
-		                1,
-		                d_out,
-		                out_stride_gulp_samples,
-		                out_nbits,
-		                1, 0, 0, 0, 0) ) {
-			throw_error(DEDISP_INTERNAL_GPU_ERROR);
+		
+		if( plan->scrunching_enabled ) {
+			thrust::device_vector<dedisp_float> d_scrunched_dm_list(dm_count);
+			dedisp_size scrunch_start = 0;
+			dedisp_size scrunch_offset = 0;
+			for( dedisp_size s=0; s<dm_count; ++s ) {
+				dedisp_size cur_scrunch  = plan->scrunch_list[s];
+				// Look for segment boundaries
+				if( s+1 == dm_count || plan->scrunch_list[s+1] != cur_scrunch ) {
+					//dedisp_size next_scrunch = plan->scrunch_list[s];
+					//if( next_scrunch != cur_scrunch ) {
+					dedisp_size scrunch_count = s+1 - scrunch_start;
+					
+					// Make a copy of the dm list divided by the scrunch factor
+					// Note: This has the effect of increasing dt in the delay eqn
+					dedisp_size dm_offset = first_dm_idx + scrunch_start;
+					thrust::transform(plan->d_dm_list.begin() + dm_offset,
+					                  plan->d_dm_list.begin() + dm_offset + scrunch_count,
+					                  thrust::make_constant_iterator(cur_scrunch),
+					                  d_scrunched_dm_list.begin(),
+					                  thrust::divides<dedisp_float>());
+					dedisp_float* d_scrunched_dm_list_ptr =
+						thrust::raw_pointer_cast(&d_scrunched_dm_list[0]);
+					
+					// TODO: Is this how the nsamps vars need to change?
+					if( !dedisperse(&d_transposed[scrunch_offset],
+					                nsamps_padded_gulp / cur_scrunch,
+					                nsamps_computed_gulp / cur_scrunch,
+					                in_nbits,
+					                plan->nchans,
+					                1,
+					                d_scrunched_dm_list_ptr,
+					                scrunch_count,//dm_count,
+					                1,
+					                d_out + scrunch_start,
+					                out_stride_gulp_samples,
+					                out_nbits,
+					                1, 0, 0, 0, 0) ) {
+						throw_error(DEDISP_INTERNAL_GPU_ERROR);
+					}
+					scrunch_offset += scrunch_stride / cur_scrunch;
+					scrunch_start += scrunch_count;
+				}
+			}
 		}
-
+		else {
+			// Perform direct dedispersion without scrunching
+			if( !dedisperse(d_transposed,
+			                nsamps_padded_gulp,
+			                nsamps_computed_gulp,
+			                in_nbits,
+			                plan->nchans,
+			                1,
+			                thrust::raw_pointer_cast(&plan->d_dm_list[first_dm_idx]),
+			                dm_count,
+			                1,
+			                d_out,
+			                out_stride_gulp_samples,
+			                out_nbits,
+			                1, 0, 0, 0, 0) ) {
+				throw_error(DEDISP_INTERNAL_GPU_ERROR);
+			}
+		}
 #endif // SB/direct algorithm
 
 #ifdef DEDISP_BENCHMARK
@@ -843,5 +972,30 @@ const char* dedisp_get_error_string(dedisp_error error)
 	default:
 		return "Invalid error code";
 	}
+}
+
+dedisp_error dedisp_enable_adaptive_dt(dedisp_plan  plan,
+                                       dedisp_float pulse_width,
+                                       dedisp_float tol)
+{
+	if( !plan ) { throw_error(DEDISP_INVALID_PLAN); }
+	plan->scrunching_enabled = true;
+	plan->pulse_width = pulse_width;
+	plan->scrunch_tol = tol;
+	return update_scrunch_list(plan);
+}
+dedisp_error dedisp_disable_adaptive_dt(dedisp_plan plan) {
+	if( !plan ) { throw_error(DEDISP_INVALID_PLAN); }
+	plan->scrunching_enabled = false;
+	return update_scrunch_list(plan);
+}
+dedisp_bool dedisp_using_adaptive_dt(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,false); }
+	return plan->scrunching_enabled;
+}
+const dedisp_size* dedisp_get_dt_factors(const dedisp_plan plan) {
+	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
+	if( 0 == plan->dm_count ) { throw_getter_error(DEDISP_NO_DM_LIST_SET,0); }
+	return &plan->scrunch_list[0];
 }
 // ----------------

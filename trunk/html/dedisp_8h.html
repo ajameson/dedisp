@@ -112,6 +112,14 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="dedisp_8h.html#630970185d44d8785c03e421b2165db9">dedisp_error</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="dedisp_8h.html#ec61942576a3c3b393e02ac1e6d10041">dedisp_sync</a> (void)</td></tr>
 
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="dedisp_8h.html#630970185d44d8785c03e421b2165db9">dedisp_error</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="dedisp_8h.html#777569ec84a1ee01757d5a1999b1d7fc">dedisp_enable_adaptive_dt</a> (<a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a> plan, <a class="el" href="dedisp_8h.html#3ec44b5c18c1f4f3e0793625b4ed02c5">dedisp_float</a> pulse_width, <a class="el" href="dedisp_8h.html#3ec44b5c18c1f4f3e0793625b4ed02c5">dedisp_float</a> tol)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="dedisp_8h.html#630970185d44d8785c03e421b2165db9">dedisp_error</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="dedisp_8h.html#d1578fdfb1e1e9b0d333b6b59284d37e">dedisp_disable_adaptive_dt</a> (<a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a> plan)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="dedisp_8h.html#2a2d0a26c21b1b7216c92527bd74e59e">dedisp_bool</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="dedisp_8h.html#82197acdf80b55d3146d39ddd5d0a161">dedisp_using_adaptive_dt</a> (const <a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a> plan)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">const <a class="el" href="dedisp_8h.html#fdd16d54b665e37c99fcdb30bdad44f1">dedisp_size</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="dedisp_8h.html#de4c023a0cacf045715b97bb1f79b17d">dedisp_get_dt_factors</a> (const <a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a> plan)</td></tr>
+
 </table>
 <hr><a name="_details"></a><h2>Detailed Description</h2>
 Defines the interface to the dedisp library. 
@@ -328,6 +336,74 @@ Flags for the library:<br>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>plan</em>&nbsp;</td><td>Plan object to destroy </td></tr>
+  </table>
+</dl>
+
+</div>
+</div><p>
+<a class="anchor" name="d1578fdfb1e1e9b0d333b6b59284d37e"></a><!-- doxytag: member="dedisp.h::dedisp_disable_adaptive_dt" ref="d1578fdfb1e1e9b0d333b6b59284d37e" args="(dedisp_plan plan)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dedisp_8h.html#630970185d44d8785c03e421b2165db9">dedisp_error</a> dedisp_disable_adaptive_dt           </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a>&nbsp;</td>
+          <td class="paramname"> <em>plan</em>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+<code>dedisp_disable_adaptive_dt</code> disables adaptive time resolution for <code>plan</code>. <dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>plan</em>&nbsp;</td><td>The plan for which to disable adaptive time resolution. </td></tr>
+  </table>
+</dl>
+
+</div>
+</div><p>
+<a class="anchor" name="777569ec84a1ee01757d5a1999b1d7fc"></a><!-- doxytag: member="dedisp.h::dedisp_enable_adaptive_dt" ref="777569ec84a1ee01757d5a1999b1d7fc" args="(dedisp_plan plan, dedisp_float pulse_width, dedisp_float tol)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dedisp_8h.html#630970185d44d8785c03e421b2165db9">dedisp_error</a> dedisp_enable_adaptive_dt           </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a>&nbsp;</td>
+          <td class="paramname"> <em>plan</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="dedisp_8h.html#3ec44b5c18c1f4f3e0793625b4ed02c5">dedisp_float</a>&nbsp;</td>
+          <td class="paramname"> <em>pulse_width</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="dedisp_8h.html#3ec44b5c18c1f4f3e0793625b4ed02c5">dedisp_float</a>&nbsp;</td>
+          <td class="paramname"> <em>tol</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+<code>dedisp_enable_adaptive_dt</code> instructs <code>plan</code> to use an adaptive time-resolution scheme. The time resolution is varied as a function of DM, decreasing by factors of 2 when the increase in smearing is below <code>tol</code>.<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>plan</em>&nbsp;</td><td>The plan for which to enable adaptive time resolution. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>pulse_width</em>&nbsp;</td><td>The expected pulse width (used to determine the total smearing). </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>tol</em>&nbsp;</td><td>The smearing tolerance at which the time resolution is reduced. A typical value is 1.15, meaning a tolerance of 15%. </td></tr>
   </table>
 </dl>
 
@@ -786,6 +862,32 @@ This function assumes one wishes to compute all DMs in the DM list. To compute o
 
 </div>
 </div><p>
+<a class="anchor" name="de4c023a0cacf045715b97bb1f79b17d"></a><!-- doxytag: member="dedisp.h::dedisp_get_dt_factors" ref="de4c023a0cacf045715b97bb1f79b17d" args="(const dedisp_plan plan)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="dedisp_8h.html#fdd16d54b665e37c99fcdb30bdad44f1">dedisp_size</a>* dedisp_get_dt_factors           </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a>&nbsp;</td>
+          <td class="paramname"> <em>plan</em>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+<code>dedisp_get_dt_factors</code> returns an array of length <code>dedisp_get_dm_count</code>(<code>plan</code>) containing the integer factors by which the time resolution (1/dt) is decreased for each DM. Note that the factors are guaranteed to be monotonically increasing powers of two. <dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>plan</em>&nbsp;</td><td>The plan from which to get the values. </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Note:</b></dt><dd>A DM list for <code>plan</code> must exist prior to calling this function. </dd></dl>
+
+</div>
+</div><p>
 <a class="anchor" name="7c0200cf427ae2a373045676723df314"></a><!-- doxytag: member="dedisp.h::dedisp_get_error_string" ref="7c0200cf427ae2a373045676723df314" args="(dedisp_error error)" -->
 <div class="memitem">
 <div class="memproto">
@@ -1088,7 +1190,32 @@ Passing <code>killmask=NULL</code> sets a blank killmask, i.e., no channels are 
 
 </div>
 </div><p>
-<hr size="1"><address style="align: right;"><small>Generated on Wed Feb 1 13:20:01 2012 for dedisp by&nbsp;
+<a class="anchor" name="82197acdf80b55d3146d39ddd5d0a161"></a><!-- doxytag: member="dedisp.h::dedisp_using_adaptive_dt" ref="82197acdf80b55d3146d39ddd5d0a161" args="(const dedisp_plan plan)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="dedisp_8h.html#2a2d0a26c21b1b7216c92527bd74e59e">dedisp_bool</a> dedisp_using_adaptive_dt           </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="dedisp_8h.html#692c8b46dffe868c96bfc937195345ef">dedisp_plan</a>&nbsp;</td>
+          <td class="paramname"> <em>plan</em>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+<code>dedisp_using_adaptive_dt</code> returns whether <code>plan</code> has adaptive time resolution enabled. <dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>plan</em>&nbsp;</td><td>The plan for which to query adaptive time resolution. </td></tr>
+  </table>
+</dl>
+
+</div>
+</div><p>
+<hr size="1"><address style="align: right;"><small>Generated on Sun Feb 5 14:58:18 2012 for dedisp by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>

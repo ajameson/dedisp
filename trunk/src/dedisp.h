@@ -474,6 +474,37 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 */
 dedisp_error dedisp_sync(void);
 
+/*! \p dedisp_enable_adaptive_dt instructs \p plan to use an adaptive
+ *       time-resolution scheme. The time resolution is varied as a function
+ *       of DM, decreasing by factors of 2 when the increase in smearing is
+ *       below \p tol.
+ * 
+ *  \param plan The plan for which to enable adaptive time resolution.
+ *  \param pulse_width The expected pulse width (used to determine the total
+ *           smearing).
+ *  \param tol The smearing tolerance at which the time resolution is reduced.
+ *           A typical value is 1.15, meaning a tolerance of 15%.
+ */
+dedisp_error dedisp_enable_adaptive_dt(dedisp_plan  plan,
+                                       dedisp_float pulse_width,
+                                       dedisp_float tol);
+/*! \p dedisp_disable_adaptive_dt disables adaptive time resolution for \p plan.
+ *  \param plan The plan for which to disable adaptive time resolution.
+ */
+dedisp_error dedisp_disable_adaptive_dt(dedisp_plan plan);
+/*! \p dedisp_using_adaptive_dt returns whether \p plan has adaptive time
+ *       resolution enabled.
+ *  \param plan The plan for which to query adaptive time resolution.
+ */
+dedisp_bool  dedisp_using_adaptive_dt(const dedisp_plan plan);
+/*! \p dedisp_get_dt_factors returns an array of length
+ *       \p dedisp_get_dm_count(\p plan) containing the integer factors by which
+ *       the time resolution (1/dt) is decreased for each DM. Note that the
+ *       factors are guaranteed to be monotonically increasing powers of two.
+ *  \param plan The plan from which to get the values.
+ *  \note A DM list for \p plan must exist prior to calling this function.
+ */
+const dedisp_size* dedisp_get_dt_factors(const dedisp_plan plan);
 
 #ifdef __cplusplus
 } // closing brace for extern "C"
