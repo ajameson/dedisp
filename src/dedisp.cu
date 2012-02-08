@@ -756,6 +756,11 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 #else // Use direct algorithm
 		
 		if( plan->scrunching_enabled ) {
+			
+			// TODO: THIS WILL NOT WORK IF dm_count < plan->dm_count !
+			//         Need to avoid assumption that scrunch starts at 1
+			//         Must start the scrunch at the first *requested* DM
+			
 			thrust::device_vector<dedisp_float> d_scrunched_dm_list(dm_count);
 			dedisp_size scrunch_start = 0;
 			dedisp_size scrunch_offset = 0;
@@ -786,9 +791,9 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 					                plan->nchans,
 					                1,
 					                d_scrunched_dm_list_ptr,
-					                scrunch_count,//dm_count,
+					                scrunch_count, // dm_count
 					                1,
-					                d_out + scrunch_start,
+					                d_out + scrunch_start*out_stride_gulp_samples,
 					                out_stride_gulp_samples,
 					                out_nbits,
 					                1, 0, 0, 0, 0) ) {
