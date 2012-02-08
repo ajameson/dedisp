@@ -502,7 +502,11 @@ dedisp_bool  dedisp_using_adaptive_dt(const dedisp_plan plan);
  *       the time resolution (1/dt) is decreased for each DM. Note that the
  *       factors are guaranteed to be monotonically increasing powers of two.
  *  \param plan The plan from which to get the values.
+ *  \return A pointer to an array of integer factors.
  *  \note A DM list for \p plan must exist prior to calling this function.
+ *  \note This function may safely be called even when 
+ *          \p dedisp_enable_adaptive_dt has not been called; in such cases the
+ *          returned list will consist entirely of ones.
  */
 const dedisp_size* dedisp_get_dt_factors(const dedisp_plan plan);
 

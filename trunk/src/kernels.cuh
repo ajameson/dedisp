@@ -70,7 +70,7 @@ void generate_dm_list(std::vector<dedisp_float>& dm_table,
 	double c    = (dt*dt + ti*ti) * (tol2 - 1.0);
 	
 	dm_table.push_back(dm_start);
-	while( dm_table.back() <= dm_end ) {
+	while( dm_table.back() < dm_end ) {
 		double prev     = dm_table.back();
 		double prev2    = prev*prev;
 		double k        = c + tol2*a2*prev2;

@@ -884,7 +884,9 @@ This function assumes one wishes to compute all DMs in the DM list. To compute o
     <tr><td valign="top"></td><td valign="top"><em>plan</em>&nbsp;</td><td>The plan from which to get the values. </td></tr>
   </table>
 </dl>
-<dl compact><dt><b>Note:</b></dt><dd>A DM list for <code>plan</code> must exist prior to calling this function. </dd></dl>
+<dl compact><dt><b>Returns:</b></dt><dd>A pointer to an array of integer factors. </dd></dl>
+<dl compact><dt><b>Note:</b></dt><dd>A DM list for <code>plan</code> must exist prior to calling this function. <p>
+This function may safely be called even when <code>dedisp_enable_adaptive_dt</code> has not been called; in such cases the returned list will consist entirely of ones. </dd></dl>
 
 </div>
 </div><p>
@@ -1215,7 +1217,7 @@ Passing <code>killmask=NULL</code> sets a blank killmask, i.e., no channels are 
 
 </div>
 </div><p>
-<hr size="1"><address style="align: right;"><small>Generated on Sun Feb 5 14:58:18 2012 for dedisp by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Wed Feb 8 16:23:51 2012 for dedisp by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>
