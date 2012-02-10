@@ -664,7 +664,8 @@ This function assumes one wishes to compute all DMs in the DM list. To compute o
 <div class="memdoc">
 
 <p>
-<code>dedisp_execute_guru</code> executes a plan to dedisperse the given array of data.<p>
+<code>dedisp_execute_guru</code> executes a plan to dedisperse the given array of data. <dl compact><dt><b>Note:</b></dt><dd>This function is experimental and may contain bugs. </dd></dl>
+<dl compact><dt><b><a class="el" href="bug.html#_bug000002">Bug:</a></b></dt><dd>This function cannot be used in conjunction with adaptive time resolution.</dd></dl>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>plan</em>&nbsp;</td><td>The plan to execute. </td></tr>
@@ -1217,7 +1218,7 @@ Passing <code>killmask=NULL</code> sets a blank killmask, i.e., no channels are 
 
 </div>
 </div><p>
-<hr size="1"><address style="align: right;"><small>Generated on Wed Feb 8 16:23:51 2012 for dedisp by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Fri Feb 10 17:44:26 2012 for dedisp by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>

@@ -155,34 +155,34 @@
 <a name="l00409"></a>00409                                 dedisp_size        out_nbits,
 <a name="l00410"></a>00410                                 dedisp_size        out_stride,
 <a name="l00411"></a>00411                                 <span class="keywordtype">unsigned</span>           flags);
-<a name="l00454"></a>00454 dedisp_error <a class="code" href="dedisp_8h.html#802bd0fc13d2a47c44a306a6a02d074e">dedisp_execute_guru</a>(<span class="keyword">const</span> dedisp_plan  plan,
-<a name="l00455"></a>00455                                  dedisp_size        nsamps,
-<a name="l00456"></a>00456                                  <span class="keyword">const</span> dedisp_byte* in,
-<a name="l00457"></a>00457                                  dedisp_size        in_nbits,
-<a name="l00458"></a>00458                                  dedisp_size        in_stride,
-<a name="l00459"></a>00459                                  dedisp_byte*       out,
-<a name="l00460"></a>00460                                  dedisp_size        out_nbits,
-<a name="l00461"></a>00461                                  dedisp_size        out_stride,
-<a name="l00462"></a>00462                                  dedisp_size        first_dm_idx,
-<a name="l00463"></a>00463                                  dedisp_size        dm_count,
-<a name="l00464"></a>00464                                  <span class="keywordtype">unsigned</span>           flags);
-<a name="l00465"></a>00465 
-<a name="l00466"></a>00466 <span class="comment">// TODO: CHECK THE STATUS OF THIS FEATURE</span>
-<a name="l00475"></a>00475 <span class="comment"></span>dedisp_error <a class="code" href="dedisp_8h.html#ec61942576a3c3b393e02ac1e6d10041">dedisp_sync</a>(<span class="keywordtype">void</span>);
-<a name="l00476"></a>00476 
-<a name="l00488"></a>00488 dedisp_error <a class="code" href="dedisp_8h.html#777569ec84a1ee01757d5a1999b1d7fc">dedisp_enable_adaptive_dt</a>(dedisp_plan  plan,
-<a name="l00489"></a>00489                                        dedisp_float pulse_width,
-<a name="l00490"></a>00490                                        dedisp_float tol);
-<a name="l00494"></a>00494 dedisp_error <a class="code" href="dedisp_8h.html#d1578fdfb1e1e9b0d333b6b59284d37e">dedisp_disable_adaptive_dt</a>(dedisp_plan plan);
-<a name="l00499"></a>00499 dedisp_bool  <a class="code" href="dedisp_8h.html#82197acdf80b55d3146d39ddd5d0a161">dedisp_using_adaptive_dt</a>(<span class="keyword">const</span> dedisp_plan plan);
-<a name="l00511"></a>00511 <span class="keyword">const</span> dedisp_size* <a class="code" href="dedisp_8h.html#de4c023a0cacf045715b97bb1f79b17d">dedisp_get_dt_factors</a>(<span class="keyword">const</span> dedisp_plan plan);
-<a name="l00512"></a>00512 
-<a name="l00513"></a>00513 <span class="preprocessor">#ifdef __cplusplus</span>
-<a name="l00514"></a>00514 <span class="preprocessor"></span>} <span class="comment">// closing brace for extern "C"</span>
-<a name="l00515"></a>00515 <span class="preprocessor">#endif</span>
-<a name="l00516"></a>00516 <span class="preprocessor"></span>
-<a name="l00517"></a>00517 <span class="preprocessor">#endif // DEDISP_H_INCLUDE_GUARD</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Feb 8 16:23:51 2012 for dedisp by&nbsp;
+<a name="l00457"></a>00457 dedisp_error <a class="code" href="dedisp_8h.html#802bd0fc13d2a47c44a306a6a02d074e">dedisp_execute_guru</a>(<span class="keyword">const</span> dedisp_plan  plan,
+<a name="l00458"></a>00458                                  dedisp_size        nsamps,
+<a name="l00459"></a>00459                                  <span class="keyword">const</span> dedisp_byte* in,
+<a name="l00460"></a>00460                                  dedisp_size        in_nbits,
+<a name="l00461"></a>00461                                  dedisp_size        in_stride,
+<a name="l00462"></a>00462                                  dedisp_byte*       out,
+<a name="l00463"></a>00463                                  dedisp_size        out_nbits,
+<a name="l00464"></a>00464                                  dedisp_size        out_stride,
+<a name="l00465"></a>00465                                  dedisp_size        first_dm_idx,
+<a name="l00466"></a>00466                                  dedisp_size        dm_count,
+<a name="l00467"></a>00467                                  <span class="keywordtype">unsigned</span>           flags);
+<a name="l00468"></a>00468 
+<a name="l00469"></a>00469 <span class="comment">// TODO: CHECK THE STATUS OF THIS FEATURE</span>
+<a name="l00478"></a>00478 <span class="comment"></span>dedisp_error <a class="code" href="dedisp_8h.html#ec61942576a3c3b393e02ac1e6d10041">dedisp_sync</a>(<span class="keywordtype">void</span>);
+<a name="l00479"></a>00479 
+<a name="l00491"></a>00491 dedisp_error <a class="code" href="dedisp_8h.html#777569ec84a1ee01757d5a1999b1d7fc">dedisp_enable_adaptive_dt</a>(dedisp_plan  plan,
+<a name="l00492"></a>00492                                        dedisp_float pulse_width,
+<a name="l00493"></a>00493                                        dedisp_float tol);
+<a name="l00497"></a>00497 dedisp_error <a class="code" href="dedisp_8h.html#d1578fdfb1e1e9b0d333b6b59284d37e">dedisp_disable_adaptive_dt</a>(dedisp_plan plan);
+<a name="l00502"></a>00502 dedisp_bool  <a class="code" href="dedisp_8h.html#82197acdf80b55d3146d39ddd5d0a161">dedisp_using_adaptive_dt</a>(<span class="keyword">const</span> dedisp_plan plan);
+<a name="l00514"></a>00514 <span class="keyword">const</span> dedisp_size* <a class="code" href="dedisp_8h.html#de4c023a0cacf045715b97bb1f79b17d">dedisp_get_dt_factors</a>(<span class="keyword">const</span> dedisp_plan plan);
+<a name="l00515"></a>00515 
+<a name="l00516"></a>00516 <span class="preprocessor">#ifdef __cplusplus</span>
+<a name="l00517"></a>00517 <span class="preprocessor"></span>} <span class="comment">// closing brace for extern "C"</span>
+<a name="l00518"></a>00518 <span class="preprocessor">#endif</span>
+<a name="l00519"></a>00519 <span class="preprocessor"></span>
+<a name="l00520"></a>00520 <span class="preprocessor">#endif // DEDISP_H_INCLUDE_GUARD</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Fri Feb 10 17:44:26 2012 for dedisp by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>
