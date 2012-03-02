@@ -669,7 +669,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 			for( dedisp_size s=2; s<=max_scrunch; s*=2 ) {
 				// TODO: Need to pass in stride and count? I.e., nsamps_padded/computed_gulp
 				scrunch_x2(&d_transposed[scrunch_in_offset],
-				           nsamps_padded_gulp/s, nchan_words, in_nbits,
+				           nsamps_padded_gulp/(s/2), nchan_words, in_nbits,
 				           &d_transposed[scrunch_out_offset]);
 				scrunch_in_offset = scrunch_out_offset;
 				scrunch_out_offset += scrunch_stride / s;
@@ -765,7 +765,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 			dedisp_size scrunch_start = 0;
 			dedisp_size scrunch_offset = 0;
 			for( dedisp_size s=0; s<dm_count; ++s ) {
-				dedisp_size cur_scrunch  = plan->scrunch_list[s];
+				dedisp_size cur_scrunch = plan->scrunch_list[s];
 				// Look for segment boundaries
 				if( s+1 == dm_count || plan->scrunch_list[s+1] != cur_scrunch ) {
 					//dedisp_size next_scrunch = plan->scrunch_list[s];
@@ -835,12 +835,39 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 #ifdef DEDISP_BENCHMARK
 			copy_from_timer.start();
 #endif
-			copy_device_to_host_2d(out + gulp_samp_byte_idx,
-			                       out_stride,
-			                       d_out,
-			                       out_stride_gulp_bytes,
-			                       nsamp_bytes_computed_gulp,
-			                       dm_count);
+			if( plan->scrunching_enabled ) {
+				// TODO: This for-loop isn't a very elegant solution
+				dedisp_size scrunch_start = 0;
+				for( dedisp_size s=0; s<dm_count; ++s ) {
+					dedisp_size cur_scrunch = plan->scrunch_list[s];
+					// Look for segment boundaries
+					if( s+1 == dm_count || plan->scrunch_list[s+1] != cur_scrunch ) {
+						dedisp_size scrunch_count = s+1 - scrunch_start;
+						
+						dedisp_size  src_stride = out_stride_gulp_bytes;
+						dedisp_byte* src = d_out + scrunch_start * src_stride;
+						dedisp_byte* dst = (out + scrunch_start * out_stride
+						                    + gulp_samp_byte_idx / cur_scrunch);
+						dedisp_size  width = nsamp_bytes_computed_gulp / cur_scrunch;
+						dedisp_size  height = scrunch_count;
+						copy_device_to_host_2d(dst,                       // dst
+						                       out_stride,                // dst stride
+						                       src,                       // src
+						                       src_stride,                // src stride
+						                       width,                     // width bytes
+						                       height);                   // height
+						scrunch_start += scrunch_count;
+					}
+				}
+			}
+			else {
+				copy_device_to_host_2d(out + gulp_samp_byte_idx,  // dst
+				                       out_stride,                // dst stride
+				                       d_out,                     // src
+				                       out_stride_gulp_bytes,     // src stride
+				                       nsamp_bytes_computed_gulp, // width bytes
+				                       dm_count);                 // height
+			}
 #ifdef DEDISP_BENCHMARK
 			cudaThreadSynchronize();
 			copy_from_timer.stop();
