@@ -88,8 +88,29 @@ T scale_output(SumType sum, dedisp_size nchans) {
 	//return (dedisp_word)(((unsigned int)sum >> 4) - 128 - 128);
 	
 	// This uses the full range of the output bits
-	return (T)((float)sum / ((float)nchans * max_value<IN_NBITS>::value)
-			   * max_value<sizeof(T)*BITS_PER_BYTE>::value );
+	//return (T)((double)sum / ((double)nchans * max_value<IN_NBITS>::value)
+	//		   * max_value<sizeof(T)*BITS_PER_BYTE>::value );
+	
+	// This assumes the input data have mean=range/2 and then scales by
+	//   assuming the SNR goes like sqrt(nchans).
+	double in_range  = max_value<IN_NBITS>::value;
+	double mean      = 0.5 *      (double)nchans  * in_range;
+	double max       = 0.5 * sqrt((double)nchans) * in_range;
+	
+	// TODO: There are problems with the output scaling when in_nbits is small
+	//         (e.g., in_nbits < 8). Not sure what to do about it at this stage.
+	
+	// TESTING This fixes 1-bit
+	// TODO: See test_quantised_rms.py for further exploration of this
+	//double max       = 0.5 * sqrt((double)nchans) * in_range * 2*4.545454; // HACK
+	// TESTING This fixes 2-bit
+	//double max       = 0.5 * sqrt((double)nchans) * in_range * 0.8*4.545454; // HACK
+	// TESTING This fixes 4-bit
+	//double max       = 0.5 * sqrt((double)nchans) * in_range * 0.28*4.545454; // HACK
+	double out_range = max_value<sizeof(T)*BITS_PER_BYTE>::value;
+	double out_mean  = 0.5 * out_range;
+	double out_max   = 0.5 * out_range;
+	return (T)( (sum-mean)/max * out_max + out_mean + 0.5 );
 }
 
 template<int NBITS, typename T>
@@ -436,7 +457,7 @@ struct scrunch_x2_functor
 		for( int k=0; k<sizeof(WordType)*8; k+=nbits ) {
 			dedisp_word s0 = (in0 >> k) & mask;
 			dedisp_word s1 = (in1 >> k) & mask;
-			dedisp_word avg = (s0 + s1) / 2;
+			dedisp_word avg = ((unsigned long long)s0 + s1) / 2;
 			out |= avg << k;
 		}
 		return out;
@@ -509,6 +530,83 @@ dedisp_error generate_scrunch_list(dedisp_size* scrunch_list,
 			scrunch_list[d] = scrunch_list[d-1];
 		}
 	}
+	
+	return DEDISP_NO_ERROR;
+}
+
+template<typename WordType>
+struct unpack_functor
+	: public thrust::unary_function<unsigned int,WordType> {
+	const WordType* in;
+	int             nsamps;
+	int             in_nbits;
+	int             out_nbits;
+	unpack_functor(const WordType* in_, int nsamps_, int in_nbits_, int out_nbits_)
+		: in(in_), nsamps(nsamps_), in_nbits(in_nbits_), out_nbits(out_nbits_) {}
+	inline __host__ __device__
+	WordType operator()(unsigned int i) const {
+		int out_chans_per_word = sizeof(WordType)*8 / out_nbits;
+		int in_chans_per_word = sizeof(WordType)*8 / in_nbits;
+		//int expansion = out_nbits / in_nbits;
+		int norm = ((1<<out_nbits)-1) / ((1<<in_nbits)-1);
+		WordType in_mask  = (1<<in_nbits)-1;
+		WordType out_mask = (1<<out_nbits)-1;
+		
+		/*
+		  cw\k 0123 0123
+		  0    0123|0123
+		  1    4567|4567
+		  
+		  cw\k 0 1
+		  0    0 1 | 0 1
+		  1    2 3 | 2 3
+		  2    4 5 | 4 5
+		  3    6 7 | 6 7
+		  
+		  
+		 */
+		
+		unsigned int t      = i % nsamps;
+		// Find the channel word indices
+		unsigned int out_cw = i / nsamps;
+		//unsigned int in_cw  = out_cw / expansion;
+		//unsigned int in_i   = in_cw * nsamps + t;
+		//WordType word = in[in_i];
+		
+		WordType result = 0;
+		for( int k=0; k<sizeof(WordType)*8; k+=out_nbits ) {
+			
+			int c = out_cw * out_chans_per_word + k/out_nbits;
+			int in_cw = c / in_chans_per_word;
+			int in_k  = c % in_chans_per_word * in_nbits;
+			int in_i  = in_cw * nsamps + t;
+			WordType word = in[in_i];
+			
+			WordType val = (word >> in_k) & in_mask;
+			result |= ((val * norm) & out_mask) << k;
+		}
+		return result;
+	}
+};
+
+dedisp_error unpack(const dedisp_word* d_transposed,
+                    dedisp_size nsamps, dedisp_size nchan_words,
+                    dedisp_word* d_unpacked,
+                    dedisp_size in_nbits, dedisp_size out_nbits)
+{
+	thrust::device_ptr<dedisp_word> d_unpacked_begin(d_unpacked);
+	
+	dedisp_size expansion = out_nbits / in_nbits;
+	dedisp_size in_count  = nsamps * nchan_words;
+	dedisp_size out_count = in_count * expansion;
+	
+	using thrust::make_counting_iterator;
+	
+	thrust::transform(make_counting_iterator<unsigned int>(0),
+	                  make_counting_iterator<unsigned int>(out_count),
+	                  d_unpacked_begin,
+	                  unpack_functor<dedisp_word>(d_transposed, nsamps,
+	                                              in_nbits, out_nbits));
 	
 	return DEDISP_NO_ERROR;
 }

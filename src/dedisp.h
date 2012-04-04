@@ -410,7 +410,7 @@ dedisp_error dedisp_execute_adv(const dedisp_plan  plan,
                                 dedisp_size        out_stride,
                                 unsigned           flags);
 /*! \p dedisp_execute_guru executes a plan to dedisperse the given array of data.
- *  \note This function is experimental and may contain bugs.
+ *  \warning This function is experimental and may contain bugs.
  *  \bug This function cannot be used in conjunction with adaptive time
  *         resolution.
  * 

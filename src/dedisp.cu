@@ -53,10 +53,10 @@ using std::endl;
 #include "gpu_memory.hpp"
 #include "transpose.hpp"
 
-#define DEDISP_DEFAULT_GULP_SIZE 131072
+#define DEDISP_DEFAULT_GULP_SIZE 65536 //131072
 
 // Note: The implementation of the sub-band algorithm is a prototype only
-//         Enable at your own risk!
+//         Enable at your own risk! It may not be in a working state at all.
 //#define USE_SUBBAND_ALGORITHM
 #define DEDISP_DEFAULT_SUBBAND_SIZE 32
 
@@ -537,6 +537,22 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		* DEDISP_SAMPS_PER_THREAD + plan->max_delay;
 	dedisp_size in_count_padded_gulp_max = 
 		nsamps_padded_gulp_max * in_buf_stride_words;
+	
+	// TODO: Make this a parameter?
+	dedisp_size min_in_nbits = 0;
+	if( plan->scrunching_enabled ) {
+		// TODO: This produces corrupt output when equal to 32 !
+		//         Also check whether the unpacker is broken when in_nbits=32 !
+		min_in_nbits = 16; //32;
+	}
+	dedisp_size unpacked_in_nbits = max((int)in_nbits, (int)min_in_nbits);
+	dedisp_size unpacked_chans_per_word =
+		sizeof(dedisp_word)*BITS_PER_BYTE / unpacked_in_nbits;
+	dedisp_size unpacked_nchan_words = plan->nchans / unpacked_chans_per_word;
+	dedisp_size unpacked_buf_stride_words = unpacked_nchan_words;
+	dedisp_size unpacked_count_padded_gulp_max =
+		nsamps_padded_gulp_max * unpacked_buf_stride_words;
+	
 	dedisp_size out_stride_gulp_samples  = nsamps_computed_gulp_max;
 	dedisp_size out_stride_gulp_bytes    = 
 		out_stride_gulp_samples * out_bytes_per_sample;
@@ -546,9 +562,11 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	// -------------------------------
 	const dedisp_word* d_in = 0;
 	dedisp_word*       d_transposed = 0;
+	dedisp_word*       d_unpacked = 0;
 	dedisp_byte*       d_out = 0;
 	thrust::device_vector<dedisp_word> d_in_buf;
 	thrust::device_vector<dedisp_word> d_transposed_buf;
+	thrust::device_vector<dedisp_word> d_unpacked_buf;
 	thrust::device_vector<dedisp_byte> d_out_buf;
 	// Allocate temporary buffers on the device where necessary
 	if( using_host_memory || !friendly_in_stride ) {
@@ -567,15 +585,20 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	else {
 		d_out = out;
 	}
-	// Note: * 2 here is for the time-scrunched copies of the data
-	try { d_transposed_buf.resize(in_count_padded_gulp_max * 2); }
+	//// Note: * 2 here is for the time-scrunched copies of the data
+	try { d_transposed_buf.resize(in_count_padded_gulp_max/* * 2 */); }
 	catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
 	d_transposed = thrust::raw_pointer_cast(&d_transposed_buf[0]);
+	
+	// Note: * 2 here is for the time-scrunched copies of the data
+	try { d_unpacked_buf.resize(unpacked_count_padded_gulp_max * 2); }
+	catch(...) { throw_error(DEDISP_MEM_ALLOC_FAILED); }
+	d_unpacked = thrust::raw_pointer_cast(&d_unpacked_buf[0]);
 	// -------------------------------
 	
 	// The stride (in words) between differently-scrunched copies of the
-	//   transposed data.
-	dedisp_size scrunch_stride = in_count_padded_gulp_max;
+	//   unpacked data.
+	dedisp_size scrunch_stride = unpacked_count_padded_gulp_max;
 	
 #ifdef USE_SUBBAND_ALGORITHM
 	
@@ -661,6 +684,11 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		kernel_timer.start();
 #endif
 		
+		// Unpack the transposed data
+		unpack(d_transposed, nsamps_padded_gulp, nchan_words,
+		       d_unpacked,
+		       in_nbits, unpacked_in_nbits);
+		
 		// Compute time-scrunched copies of the data
 		if( plan->scrunching_enabled ) {
 			dedisp_size max_scrunch = plan->scrunch_list[plan->dm_count-1];
@@ -668,15 +696,21 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 			dedisp_size scrunch_out_offset = scrunch_stride;
 			for( dedisp_size s=2; s<=max_scrunch; s*=2 ) {
 				// TODO: Need to pass in stride and count? I.e., nsamps_padded/computed_gulp
-				scrunch_x2(&d_transposed[scrunch_in_offset],
-				           nsamps_padded_gulp/(s/2), nchan_words, in_nbits,
-				           &d_transposed[scrunch_out_offset]);
+				//scrunch_x2(&d_transposed[scrunch_in_offset],
+				//           nsamps_padded_gulp/(s/2), nchan_words, in_nbits,
+				//           &d_transposed[scrunch_out_offset]);
+				scrunch_x2(&d_unpacked[scrunch_in_offset],
+				           nsamps_padded_gulp/(s/2),
+				           unpacked_nchan_words, unpacked_in_nbits,
+				           &d_unpacked[scrunch_out_offset]);
 				scrunch_in_offset = scrunch_out_offset;
 				scrunch_out_offset += scrunch_stride / s;
 			}
 		}
 		
 #ifdef USE_SUBBAND_ALGORITHM
+		// TODO: This has not been updated to use d_unpacked!
+		
 		dedisp_size chan_stride       = 1;
 		dedisp_size dm_stride         = dm_size;
 		dedisp_size ostride           = nsamps_padded_gulp * sb_count;
@@ -784,10 +818,11 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 						thrust::raw_pointer_cast(&d_scrunched_dm_list[0]);
 					
 					// TODO: Is this how the nsamps vars need to change?
-					if( !dedisperse(&d_transposed[scrunch_offset],
+					if( !dedisperse(//&d_transposed[scrunch_offset],
+					                &d_unpacked[scrunch_offset],
 					                nsamps_padded_gulp / cur_scrunch,
 					                nsamps_computed_gulp / cur_scrunch,
-					                in_nbits,
+					                unpacked_in_nbits, //in_nbits,
 					                plan->nchans,
 					                1,
 					                d_scrunched_dm_list_ptr,
@@ -806,10 +841,11 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 		}
 		else {
 			// Perform direct dedispersion without scrunching
-			if( !dedisperse(d_transposed,
+			if( !dedisperse(//d_transposed,
+			                d_unpacked,
 			                nsamps_padded_gulp,
 			                nsamps_computed_gulp,
-			                in_nbits,
+			                unpacked_in_nbits, //in_nbits,
 			                plan->nchans,
 			                1,
 			                thrust::raw_pointer_cast(&plan->d_dm_list[first_dm_idx]),
