@@ -95,7 +95,7 @@ T scale_output(SumType sum, dedisp_size nchans) {
 	//   assuming the SNR goes like sqrt(nchans).
 	double in_range  = max_value<IN_NBITS>::value;
 	double mean      = 0.5 *      (double)nchans  * in_range;
-	double max       = 0.5 * sqrt((double)nchans) * in_range;
+	double max_val   = 0.5 * sqrt((double)nchans) * in_range;
 	
 	// TODO: There are problems with the output scaling when in_nbits is small
 	//         (e.g., in_nbits < 8). Not sure what to do about it at this stage.
@@ -110,7 +110,9 @@ T scale_output(SumType sum, dedisp_size nchans) {
 	double out_range = max_value<sizeof(T)*BITS_PER_BYTE>::value;
 	double out_mean  = 0.5 * out_range;
 	double out_max   = 0.5 * out_range;
-	return (T)( (sum-mean)/max * out_max + out_mean + 0.5 );
+	double scaled = floor((sum-mean)/max_val * out_max + out_mean + 0.5);
+	scaled = min(max(scaled, 0.), out_range);
+	return (T)scaled;
 }
 
 template<int NBITS, typename T>
