@@ -86,11 +86,13 @@ T scale_output(SumType sum, dedisp_size nchans) {
 	// This emulates dedisperse_all, but is specific to 8-bit output
 	// Note: This also breaks the sub-band algorithm
 	//return (dedisp_word)(((unsigned int)sum >> 4) - 128 - 128);
+	// HACK
+	//return (T)(sum / 16 - 128 - 128);
 	
 	// This uses the full range of the output bits
 	//return (T)((double)sum / ((double)nchans * max_value<IN_NBITS>::value)
 	//		   * max_value<sizeof(T)*BITS_PER_BYTE>::value );
-	
+	/*
 	// This assumes the input data have mean=range/2 and then scales by
 	//   assuming the SNR goes like sqrt(nchans).
 	double in_range  = max_value<IN_NBITS>::value;
@@ -111,7 +113,23 @@ T scale_output(SumType sum, dedisp_size nchans) {
 	double out_mean  = 0.5 * out_range;
 	double out_max   = 0.5 * out_range;
 	double scaled = floor((sum-mean)/max_val * out_max + out_mean + 0.5);
-	scaled = min(max(scaled, 0.), out_range);
+	*/
+	// TESTING
+	float in_range  = max_value<IN_NBITS>::value;
+	// Note: We use floats when out_nbits == 32, and scale to a range of [0:1]
+	float out_range = (sizeof(T)==4) ? 1.f
+	                                 : max_value<sizeof(T)*BITS_PER_BYTE>::value;
+	//float scaled = (float)sum / in_range / sqrt((float)nchans) * out_range;
+	//float scaled = (float)sum / (in_range * nchans) * out_range;
+	//float scaled = sum * ((float)out_range / in_range / 85.f) / 16.f;
+	
+	// Note: This emulates what dedisperse_all does for 2-bit HTRU data --> 8-bit
+	//         (and will adapt linearly to changes in in/out_nbits or nchans)
+	float factor = (3.f * 1024.f) / 255.f / 16.f;
+	float scaled = (float)sum * out_range / (in_range * nchans) * factor;
+	// Clip to range when necessary
+	scaled = (sizeof(T)==4) ? scaled
+	                        : min(max(scaled, 0.), out_range);
 	return (T)scaled;
 }
 
@@ -126,6 +144,13 @@ T extract_subword(T value, int idx) {
 template<int IN_NBITS> struct SumType { typedef dedisp_word type; };
 // Note: For 32-bit input, we must accumulate using a larger data type
 template<> struct SumType<32> { typedef unsigned long long type; };
+
+template<typename T, int IN_NBITS, typename SumType>
+inline __host__ __device__
+void set_out_val(dedisp_byte* d_out, dedisp_size idx,
+                 SumType sum, dedisp_size nchans) {
+	((T*)d_out)[idx] = scale_output<IN_NBITS,T>(sum, nchans);
+}
 
 // Note: This assumes consecutive input words are consecutive times,
 //         but that consecutive subwords are consecutive channels.
@@ -241,35 +266,32 @@ void dedisperse_kernel(const dedisp_word*  d_in,
 		
 		// Write sums to global mem
 		// Note: This is ugly, but easy, and doesn't hurt performance
+		dedisp_size out_idx = ( samp_idx*SAMPS_PER_THREAD +
+		                        dm_idx * out_stride +
+		                        batch_idx * batch_out_stride );
 		switch( out_nbits ) {
 			case 8:
                 #pragma unroll
 				for( dedisp_size s=0; s<SAMPS_PER_THREAD; ++s ) {
 					if( samp_idx*SAMPS_PER_THREAD + s < nsamps )
-						((unsigned char*)d_out)[samp_idx*SAMPS_PER_THREAD + s +
-												dm_idx * out_stride +
-												batch_idx * batch_out_stride] =
-							scale_output<IN_NBITS,unsigned char>(sum[s], nchans);
+						set_out_val<unsigned char, IN_NBITS>(d_out, out_idx + s,
+						                                     sum[s], nchans);
 				}
 				break;
 			case 16:
                 #pragma unroll
 				for( dedisp_size s=0; s<SAMPS_PER_THREAD; ++s ) {
 					if( samp_idx*SAMPS_PER_THREAD + s < nsamps )
-						((unsigned short*)d_out)[samp_idx*SAMPS_PER_THREAD + s +
-												 dm_idx * out_stride +
-												 batch_idx * batch_out_stride] =
-							scale_output<IN_NBITS,unsigned short>(sum[s], nchans);
+						set_out_val<unsigned short, IN_NBITS>(d_out, out_idx + s,
+						                                      sum[s], nchans);
 				}
 				break;
 			case 32:
                 #pragma unroll
 				for( dedisp_size s=0; s<SAMPS_PER_THREAD; ++s ) {
 					if( samp_idx*SAMPS_PER_THREAD + s < nsamps )
-						((unsigned int*)d_out)[samp_idx*SAMPS_PER_THREAD + s +
-											   dm_idx * out_stride +
-											   batch_idx * batch_out_stride] =
-							scale_output<IN_NBITS,unsigned int>(sum[s], nchans);
+						set_out_val<float, IN_NBITS>(d_out, out_idx + s,
+						                             sum[s], nchans);
 				}
 				break;
 			default:

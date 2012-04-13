@@ -473,7 +473,7 @@ Flags for the library:<br>
     <tr><td valign="top"></td><td valign="top"><em>in</em>&nbsp;</td><td>Pointer to an array containing a time series of length <code>nsamps</code> for each frequency channel in <code>plan</code>. The data must be in <b>time-major order</b>, i.e., frequency is the fastest-changing dimension, time the slowest. There must be no padding between consecutive frequency channels. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>in_nbits</em>&nbsp;</td><td>The number of bits per sample in the input data. Currently supported values are: 1, 2, 4, 8, 16, 32 </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>out</em>&nbsp;</td><td>Pointer to an output array of length (<code>nsamps</code> - <code>max_delay</code>) * <code>dm_count</code> * <code>out_nbits/8</code> bytes, where <code>max_delay</code> and <code>dm_count</code> are the values given by <code>dedisp_get_max_delay(plan)</code> and <code>dedisp_get_dm_count(plan)</code>. The output order is <b>DM-major</b>, i.e., time is the fastest-changing dimension, DM the slowest. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>out_nbits</em>&nbsp;</td><td>The number of bits per sample in the output data. Currently supported values are: 8, 16, 32 </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>out_nbits</em>&nbsp;</td><td>The number of bits per sample in the output data. Currently supported values are: 8 (uchar), 16 (ushort), 32 (float) </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>flags</em>&nbsp;</td><td>Configuration flags, interpreted as follows: <br>
  0 or DEDISP_USE_DEFAULT: Use the default configuration. <br>
  DEDISP_HOST_POINTERS (default): The pointers <code>in</code> and <code>out</code> point to arrays on the host. <br>
@@ -567,7 +567,7 @@ This function assumes one wishes to compute all DMs in the DM list. To compute o
     <tr><td valign="top"></td><td valign="top"><em>in_nbits</em>&nbsp;</td><td>The number of bits per sample in the input data. Currently supported values are: 1, 2, 4, 8, 16, 32 </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>in_stride</em>&nbsp;</td><td>The stride of the array <code>in</code> in bytes. Must be &gt;= <code>channel_count</code>, where <code>channel_count</code> is the value given by <code>dedisp_get_channel_count(plan)</code>. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>out</em>&nbsp;</td><td>Pointer to an array of length <code>out_stride*dm_count</code> bytes, where <code>dm_count</code> is the value given by <code>dedisp_get_dm_count(plan)</code>. The output order is <b>DM-major</b>, i.e., time is the fastest-changing dimension, DM the slowest. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>out_nbits</em>&nbsp;</td><td>The number of bits per sample in the output data. Currently supported values are: 8, 16, 32 </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>out_nbits</em>&nbsp;</td><td>The number of bits per sample in the output data. Currently supported values are: 8 (uchar), 16 (ushort), 32 (float) </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>out_stride</em>&nbsp;</td><td>The stride of the array <code>out</code> in bytes. Must be &gt;= (<code>nsamps</code> - <code>max_delay</code>) * <code>out_nbits/8</code>, where <code>max_delay</code> is the value given by <code>dedisp_get_max_delay(plan)</code>. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>flags</em>&nbsp;</td><td>Configuration flags, interpreted as follows: <br>
  0 or DEDISP_USE_DEFAULT: Use the default configuration. <br>
@@ -674,7 +674,7 @@ This function assumes one wishes to compute all DMs in the DM list. To compute o
     <tr><td valign="top"></td><td valign="top"><em>in_nbits</em>&nbsp;</td><td>The number of bits per sample in the input data. Currently supported values are: 1, 2, 4, 8, 16, 32 </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>in_stride</em>&nbsp;</td><td>The stride of the array <code>in</code> in bytes. Must be &gt;= <code>channel_count</code>, where <code>channel_count</code> is the value given by <code>dedisp_get_channel_count(plan)</code>. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>out</em>&nbsp;</td><td>Pointer to an array of length <code>out_stride*dm_count</code> bytes, where <code>dm_count</code> is the value given by <code>dedisp_get_dm_count(plan)</code>. The output order is <b>DM-major</b>, i.e., time is the fastest-changing dimension, DM the slowest. </td></tr>
-    <tr><td valign="top"></td><td valign="top"><em>out_nbits</em>&nbsp;</td><td>The number of bits per sample in the output data. Currently supported values are: 8, 16, 32 </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>out_nbits</em>&nbsp;</td><td>The number of bits per sample in the output data. Currently supported values are: 8 (uchar), 16 (ushort), 32 (float) </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>out_stride</em>&nbsp;</td><td>The stride of the array <code>out</code> in bytes. Must be &gt;= (<code>nsamps</code> - <code>max_delay</code>) * <code>out_nbits/8</code>, where <code>max_delay</code> is the value given by <code>dedisp_get_max_delay(plan)</code>. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>first_dm_idx</em>&nbsp;</td><td>The (0-based) index at which to start within the DM list. </td></tr>
     <tr><td valign="top"></td><td valign="top"><em>dm_count</em>&nbsp;</td><td>The number of DMs to compute from the DM list. </td></tr>
@@ -1218,7 +1218,7 @@ Passing <code>killmask=NULL</code> sets a blank killmask, i.e., no channels are 
 
 </div>
 </div><p>
-<hr size="1"><address style="align: right;"><small>Generated on Wed Apr 4 12:14:04 2012 for dedisp by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Fri Apr 13 16:20:54 2012 for dedisp by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>

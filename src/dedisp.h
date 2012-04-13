@@ -328,7 +328,7 @@ const char*         dedisp_get_error_string(dedisp_error error);
  *    The output order is <b>DM-major</b>, i.e., time is the
  *    fastest-changing dimension, DM the slowest.
  *  \param out_nbits The number of bits per sample in the output data.
- *    Currently supported values are: 8, 16, 32
+ *    Currently supported values are: 8 (uchar), 16 (ushort), 32 (float)
  *  \param flags Configuration flags, interpreted as follows: \n
  *    0 or DEDISP_USE_DEFAULT:        Use the default configuration. \n
  *    DEDISP_HOST_POINTERS (default): The pointers \p in and \p out point to
@@ -376,7 +376,7 @@ dedisp_error dedisp_execute(const dedisp_plan  plan,
  *    The output order is <b>DM-major</b>, i.e., time is the
  *    fastest-changing dimension, DM the slowest.
  *  \param out_nbits The number of bits per sample in the output data.
- *    Currently supported values are: 8, 16, 32
+ *    Currently supported values are: 8 (uchar), 16 (ushort), 32 (float)
  *  \param out_stride The stride of the array \p out in bytes.
  *    Must be >= (\p nsamps - \p max_delay) * \p out_nbits/8, where \p max_delay
  *      is the value given by \p dedisp_get_max_delay(plan).
@@ -430,7 +430,7 @@ dedisp_error dedisp_execute_adv(const dedisp_plan  plan,
  *    The output order is <b>DM-major</b>, i.e., time is the
  *    fastest-changing dimension, DM the slowest.
  *  \param out_nbits The number of bits per sample in the output data.
- *    Currently supported values are: 8, 16, 32
+ *    Currently supported values are: 8 (uchar), 16 (ushort), 32 (float)
  *  \param out_stride The stride of the array \p out in bytes.
  *    Must be >= (\p nsamps - \p max_delay) * \p out_nbits/8, where \p max_delay
  *      is the value given by \p dedisp_get_max_delay(plan).
