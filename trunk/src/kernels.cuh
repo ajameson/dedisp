@@ -114,7 +114,6 @@ T scale_output(SumType sum, dedisp_size nchans) {
 	double out_max   = 0.5 * out_range;
 	double scaled = floor((sum-mean)/max_val * out_max + out_mean + 0.5);
 	*/
-	// TESTING
 	float in_range  = max_value<IN_NBITS>::value;
 	// Note: We use floats when out_nbits == 32, and scale to a range of [0:1]
 	float out_range = (sizeof(T)==4) ? 1.f

@@ -16,6 +16,9 @@
 
 /*
   This file contains the boring boiler-plate code to manage the library.
+  
+  TODO: Test on 32-bit integer input
+        Consider accepting 32-bit floats instead of 32-bit ints
 */
 
 //#define DEDISP_DEBUG
@@ -828,7 +831,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 					                d_scrunched_dm_list_ptr,
 					                scrunch_count, // dm_count
 					                1,
-					                d_out + scrunch_start*out_stride_gulp_samples,
+					                d_out + scrunch_start*out_stride_gulp_bytes,
 					                out_stride_gulp_samples,
 					                out_nbits,
 					                1, 0, 0, 0, 0) ) {
