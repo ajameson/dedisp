@@ -288,8 +288,8 @@ dedisp_error dedisp_set_dm_list(dedisp_plan plan,
 	catch(...) { throw_error(DEDISP_MEM_COPY_FAILED); }
 	
 	// Calculate the maximum delay and store it in the plan
-	plan->max_delay = (dedisp_size)(plan->dm_list[plan->dm_count-1] *
-	                                plan->delay_table[plan->nchans-1] + 0.5);
+	plan->max_delay = dedisp_size(plan->dm_list[plan->dm_count-1] *
+	                              plan->delay_table[plan->nchans-1] + 0.5);
 	
 	dedisp_error error = update_scrunch_list(plan);
 	if( error != DEDISP_NO_ERROR ) {
@@ -518,9 +518,12 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	}
 	
 	// Just to be sure
+	// TODO: This seems quite wrong. Why was it here?
+	/*
 	if( nsamps_computed_gulp_max < plan->max_delay ) {
 		throw_error(DEDISP_TOO_FEW_NSAMPS);
 	}
+	*/
 	
 	// Compute derived counts for maximum gulp size
 	dedisp_size nsamps_gulp_max = nsamps_computed_gulp_max + plan->max_delay;

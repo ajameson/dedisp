@@ -532,6 +532,9 @@ dedisp_error generate_scrunch_list(dedisp_size* scrunch_list,
                                    dedisp_float tol) {
 	// Note: This algorithm always starts with no scrunching and is only
 	//         able to 'adapt' the scrunching by doubling in any step.
+	// TODO: To improve this it would be nice to allow scrunch_list[0] > 1.
+	//         This would probably require changing the output nsamps
+	//           according to the mininum scrunch.
 	
 	scrunch_list[0] = 1;
 	for( dedisp_size d=1; d<dm_count; ++d ) {
@@ -539,13 +542,13 @@ dedisp_error generate_scrunch_list(dedisp_size* scrunch_list,
 		dedisp_float delta_dm = dm - dm_list[d-1];
 		
 		dedisp_float smearing = get_smearing(scrunch_list[d-1] * dt0,
-		                                 pulse_width*1e-6,
-		                                 f0, nchans, df,
-		                                 dm, delta_dm);
+		                                     pulse_width*1e-6,
+		                                     f0, nchans, df,
+		                                     dm, delta_dm);
 		dedisp_float smearing2 = get_smearing(scrunch_list[d-1] * 2 * dt0,
-		                                  pulse_width*1e-6,
-		                                  f0, nchans, df,
-		                                  dm, delta_dm);
+		                                      pulse_width*1e-6,
+		                                      f0, nchans, df,
+		                                      dm, delta_dm);
 		if( smearing2 / smearing < tol ) {
 			scrunch_list[d] = scrunch_list[d-1] * 2;
 		}
