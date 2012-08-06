@@ -1,8 +1,8 @@
 # The definitions in this file should be changed to match your system
 
 # CUDA_DIR   = /usr/local/cuda
-CUDA_DIR   = /opt/local/cuda
-# CUDA_DIR   = /opt/local/cuda4.2
+# CUDA_DIR   = /opt/local/cuda
+CUDA_DIR   = /opt/local/cuda4.2
 #THRUST_DIR = $(HOME)/code/c_cpp/common/thrust-1.5.1
 THRUST_DIR = $(HOME)/code/c_cpp/common/thrust-1.6
 
