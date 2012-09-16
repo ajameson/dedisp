@@ -1,10 +1,9 @@
 # The definitions in this file should be changed to match your system
 
-# CUDA_DIR   = /usr/local/cuda
-# CUDA_DIR   = /opt/local/cuda
-CUDA_DIR   = /opt/local/cuda4.2
-#THRUST_DIR = $(HOME)/code/c_cpp/common/thrust-1.5.1
-THRUST_DIR = $(HOME)/code/c_cpp/common/thrust-1.6
+# CUDA_DIR   ?= /usr/local/cuda
+CUDA_DIR   ?= /opt/local/cuda
+#CUDA_DIR   ?= /opt/local/cuda4.2
+THRUST_DIR ?= $(CUDA_DIR)/include
 
 # LIB_ARCH   = lib
 LIB_ARCH   = lib64
