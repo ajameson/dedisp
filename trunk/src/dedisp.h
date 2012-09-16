@@ -138,9 +138,9 @@ typedef enum {
  *  
  *  \param plan Pointer to a dedisp_plan object
  *  \param nchans Number of frequency channels
- *  \param dt Time difference between two consecutive samples
- *  \param f0 Frequency of the first (i.e., highest frequency) channel
- *  \param df Frequency difference between two consecutive channels
+ *  \param dt Time difference between two consecutive samples in seconds
+ *  \param f0 Frequency of the first (i.e., highest frequency) channel in MHz
+ *  \param df Frequency difference between two consecutive channels in MHz
  *  \return One of the following error codes: \n
  *  \p DEDISP_NO_ERROR, \p DEDISP_NCHANS_EXCEEDS_LIMIT,
  *  \p DEDISP_MEM_ALLOC_FAILED, \p DEDISP_MEM_COPY_FAILED,
@@ -369,8 +369,8 @@ dedisp_error dedisp_execute(const dedisp_plan  plan,
  *  \param in_nbits The number of bits per sample in the input data.
  *    Currently supported values are: 1, 2, 4, 8, 16, 32
  *  \param in_stride The stride of the array \p in in bytes.
- *    Must be >= \p channel_count, where \p channel_count is the value given by
- *      \p dedisp_get_channel_count(plan).
+ *    Must be >= \p channel_count * \p in_nbits/8, where \p channel_count is the
+ *      value given by \p dedisp_get_channel_count(plan).
  *  \param out Pointer to an array of length \p out_stride*dm_count bytes, where
  *    \p dm_count is the value given by \p dedisp_get_dm_count(plan).
  *    The output order is <b>DM-major</b>, i.e., time is the
@@ -483,8 +483,8 @@ dedisp_error dedisp_sync(void);
  *       below \p tol.
  * 
  *  \param plan The plan for which to enable adaptive time resolution.
- *  \param pulse_width The expected pulse width (used to determine the total
- *           smearing).
+ *  \param pulse_width The expected pulse width in microseconds (used to 
+ *           determine the total smearing).
  *  \param tol The smearing tolerance at which the time resolution is reduced.
  *           A typical value is 1.15, meaning a tolerance of 15%.
  */
