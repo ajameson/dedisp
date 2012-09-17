@@ -66,6 +66,8 @@ bool copy_device_to_host(T* dst, const T* src,
 	//#endif
 	return true;
 }
+#if 0
+// ------- REMOVED --------
 template<typename T>
 bool copy_host_to_symbol(const char* symbol, const T* src,
 						 gpu_size_t count, cudaStream_t stream=0) {
@@ -83,8 +85,8 @@ bool copy_host_to_symbol(const char* symbol, const T* src,
 	//#endif
 	return true;
 }
-template<typename T>
-bool copy_device_to_symbol(const char* symbol, const T* src,
+template<typename U, typename T>
+bool copy_device_to_symbol(/*const char**/U symbol, const T* src,
 						   gpu_size_t count, cudaStream_t stream=0) {
 	cudaMemcpyToSymbolAsync(symbol, src,
 							count * sizeof(T),
@@ -99,7 +101,8 @@ bool copy_device_to_symbol(const char* symbol, const T* src,
 	//#endif
 	return true;
 }
-
+// ------- REMOVED --------
+#endif
 // Note: Strides must be given in units of bytes
 template<typename T, typename U>
 bool copy_host_to_device_2d(T* dst, gpu_size_t dst_stride,
