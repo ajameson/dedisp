@@ -494,14 +494,24 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	}
 	
 	// Copy the lookup tables to constant memory on the device
-	if( !copy_device_to_symbol("c_delay_table",
-	                           thrust::raw_pointer_cast(&plan->d_delay_table[0]),
-	                           plan->nchans) ) {
+	// TODO: This was much tidier, but thanks to CUDA's insistence on
+	//         breaking its API in v5.0 I had to mess it up like this.
+	cudaMemcpyToSymbolAsync(c_delay_table,
+	                        thrust::raw_pointer_cast(&plan->d_delay_table[0]),
+							plan->nchans * sizeof(dedisp_float),
+							0, cudaMemcpyDeviceToDevice, 0);
+	cudaThreadSynchronize();
+	cudaError_t error = cudaGetLastError();
+	if( error != cudaSuccess ) {
 		throw_error(DEDISP_MEM_COPY_FAILED);
 	}
-	if( !copy_device_to_symbol("c_killmask",
-	                           thrust::raw_pointer_cast(&plan->d_killmask[0]),
-	                           plan->nchans) ) {
+	cudaMemcpyToSymbolAsync(c_killmask,
+	                        thrust::raw_pointer_cast(&plan->d_killmask[0]),
+							plan->nchans * sizeof(dedisp_bool),
+							0, cudaMemcpyDeviceToDevice, 0);
+	cudaThreadSynchronize();
+	error = cudaGetLastError();
+	if( error != cudaSuccess ) {
 		throw_error(DEDISP_MEM_COPY_FAILED);
 	}
 	
