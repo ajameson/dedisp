@@ -9,13 +9,13 @@ THRUST_DIR ?= $(CUDA_DIR)/include
 # LIB_ARCH   = lib
 LIB_ARCH   = lib64
 # GPU_ARCH   = sm_13
-GPU_ARCH   = sm_20
-#GPU_ARCH   = sm_30
+# GPU_ARCH   = sm_20
+GPU_ARCH   = sm_30
 
 GCC        = gcc
 GXX        = g++
 AR         = ar
-NVCC       = $(CUDA_DIR)/bin/nvcc
+NVCC       = $(CUDA_DIR)/bin/nvcc -Xptxas -abi=no
 DOXYGEN    = doxygen
 RM         = rm
 ECHO       = echo

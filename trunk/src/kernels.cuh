@@ -27,9 +27,9 @@
 #include <thrust/iterator/counting_iterator.h>
 
 // Kernel tuning parameters
-#define DEDISP_BLOCK_SIZE       256 // 256 best for direct, 128 best for sub-band
-#define DEDISP_BLOCK_SAMPS      8   // 8 best for direct, 16 best for sub-band
-#define DEDISP_SAMPS_PER_THREAD 4
+#define DEDISP_BLOCK_SIZE       256
+#define DEDISP_BLOCK_SAMPS      8
+#define DEDISP_SAMPS_PER_THREAD 2 // 4 is better for Fermi?
 
 __constant__ dedisp_float c_delay_table[DEDISP_MAX_NCHANS];
 __constant__ dedisp_bool  c_killmask[DEDISP_MAX_NCHANS];
@@ -243,11 +243,12 @@ void dedisperse_kernel(const dedisp_word*  d_in,
 						
 						// Extract the desired subword and accumulate
 						sum[s] +=
-							__umul24(c_killmask[chan_idx],
+							// TODO: Pre-Fermi cards are faster with 24-bit mul
+							/*__umul24*/(c_killmask[chan_idx] *//,
 									 extract_subword<IN_NBITS>(sample,chan_sub));
 					}
 				}
-				else { // Post-Fermi path
+				else { // Fermi path
 					// Note: Unrolled to ensure the sum[] array is stored in regs
                     #pragma unroll
 					for( dedisp_size s=0; s<SAMPS_PER_THREAD; ++s ) {
@@ -304,12 +305,13 @@ void dedisperse_kernel(const dedisp_word*  d_in,
 }
 
 bool check_use_texture_mem() {
-	// Decides based on pre/post Fermi architecture
+	// Decides based on GPU architecture
 	int device_idx;
 	cudaGetDevice(&device_idx);
 	cudaDeviceProp device_props;
 	cudaGetDeviceProperties(&device_props, device_idx);
-	bool use_texture_mem = device_props.major < 2;
+	// Fermi runs worse with texture mem
+	bool use_texture_mem = (device_props.major != 2);
 	return use_texture_mem;
 }
 
