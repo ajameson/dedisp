@@ -15,7 +15,7 @@ GPU_ARCH   = sm_30
 GCC        = gcc
 GXX        = g++
 AR         = ar
-NVCC       = $(CUDA_DIR)/bin/nvcc -Xptxas -abi=no
+NVCC       = $(CUDA_DIR)/bin/nvcc #-Xptxas -abi=no
 DOXYGEN    = doxygen
 RM         = rm
 ECHO       = echo
