@@ -1,7 +1,7 @@
 # The definitions in this file should be changed to match your system
 
 CUDA_PATH ?= /usr/local/cuda
-# CUDA_PATH ?= /opt/local/cuda
+INSTALL_DIR = $(HOME)/linux_64
 
 CUDA_DIR   ?= $(CUDA_PATH)
 THRUST_DIR ?= $(CUDA_DIR)/include

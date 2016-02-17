@@ -39,6 +39,8 @@ all: shared
 shared: $(SO_NAME)
 
 $(SO_NAME): $(SOURCES) $(HEADERS)
+	mkdir -p $(LIB_DIR)
+	mkdir -p $(OBJ_DIR)
 	$(NVCC) -c -Xcompiler "-fPIC -Wall" $(OPTIMISE) $(DEBUG) -arch=$(GPU_ARCH) $(INCLUDE) -o $(OBJ_DIR)/dedisp.o $(SRC_DIR)/dedisp.cu
 	$(GCC) -shared -Wl,--version-script=libdedisp.version,-soname,$(LIB_NAME)$(SO_EXT).$(MAJOR) -o $(SO_NAME) $(OBJ_DIR)/dedisp.o $(LIB)
 	ln -s -f $(SO_FILE) $(LIB_DIR)/$(LIB_NAME)$(SO_EXT).$(MAJOR)
@@ -66,4 +68,11 @@ doc: $(SRC_DIR)/dedisp.h Doxyfile
 	$(DOXYGEN) Doxyfile
 
 clean:
-	$(RM) -f $(SO_NAME) $(A_NAME) $(OBJ_DIR)/*.o
+	$(RM) -f $(SO_NAME) $(A_NAME) $(OBJ_DIR)/*.o $(LIB_DIR)/*.so $(LIB_DIR)/*.so.1
+
+install: all
+	cp $(INTERFACE) $(INSTALL_DIR)/include/
+	cp $(CPP_INTERFACE) $(INSTALL_DIR)/include/
+	cp $(SO_NAME) $(INSTALL_DIR)/lib/
+	ln -s -f $(SO_FILE) $(INSTALL_DIR)/lib/$(LIB_NAME)$(SO_EXT).$(MAJOR)
+	ln -s -f $(SO_FILE) $(INSTALL_DIR)/lib/$(LIB_NAME)$(SO_EXT)
