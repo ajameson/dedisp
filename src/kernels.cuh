@@ -576,7 +576,7 @@ struct unpack_functor
 		int out_chans_per_word = sizeof(WordType)*8 / out_nbits;
 		int in_chans_per_word = sizeof(WordType)*8 / in_nbits;
 		//int expansion = out_nbits / in_nbits;
-		int norm = ((1<<out_nbits)-1) / ((1<<in_nbits)-1);
+		int norm = ((1l<<out_nbits)-1) / ((1l<<in_nbits)-1);
 		WordType in_mask  = (1<<in_nbits)-1;
 		WordType out_mask = (1<<out_nbits)-1;
 		
