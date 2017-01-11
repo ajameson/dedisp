@@ -338,6 +338,19 @@ dedisp_error dedisp_generate_dm_list(dedisp_plan plan,
 	return DEDISP_NO_ERROR;
 }
 
+dedisp_float * dedisp_generate_dm_list_guru (dedisp_float dm_start, dedisp_float dm_end,
+            double dt, double ti, double f0, double df,
+            dedisp_size nchans, double tol, dedisp_size * dm_count)
+{ 
+  std::vector<dedisp_float> dm_table;
+  generate_dm_list(dm_table,
+           dm_start, dm_end,
+           dt, ti, f0, df,
+           nchans, tol);
+  *dm_count = dm_table.size();
+  return &dm_table[0];
+}
+
 dedisp_error dedisp_set_device(int device_idx) {
 	if( cudaGetLastError() != cudaSuccess ) {
 		throw_error(DEDISP_PRIOR_GPU_ERROR);

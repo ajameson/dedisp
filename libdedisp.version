@@ -8,6 +8,7 @@ VERS_1.1 {
                 dedisp_set_killmask;
                 dedisp_set_dm_list;
                 dedisp_generate_dm_list;
+                dedisp_generate_dm_list_guru;
                 dedisp_get_max_delay;
                 dedisp_get_channel_count;
                 dedisp_get_dm_count;
