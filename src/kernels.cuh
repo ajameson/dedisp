@@ -311,7 +311,7 @@ bool check_use_texture_mem() {
 	cudaDeviceProp device_props;
 	cudaGetDeviceProperties(&device_props, device_idx);
 	// Fermi runs worse with texture mem
-	bool use_texture_mem = (device_props.major != 2);
+	bool use_texture_mem = (device_props.major <= 2);
 	return use_texture_mem;
 }
 
