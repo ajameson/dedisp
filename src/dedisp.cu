@@ -570,7 +570,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	// TODO: Make this a parameter?
 	dedisp_size min_in_nbits = 0;
 	if( plan->scrunching_enabled ) {
-		min_in_nbits = 32;
+		min_in_nbits = 16; //32;
 	}
 	dedisp_size unpacked_in_nbits = max((int)in_nbits, (int)min_in_nbits);
 	dedisp_size unpacked_chans_per_word =
