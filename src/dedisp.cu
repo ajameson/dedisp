@@ -407,6 +407,12 @@ dedisp_size         dedisp_get_max_delay(const dedisp_plan plan) {
 	if( 0 == plan->dm_count ) { throw_getter_error(DEDISP_NO_DM_LIST_SET,0); }
 	return plan->max_delay;
 }
+dedisp_size         dedisp_get_dm_delay(const dedisp_plan plan, int dm_trial) {
+  if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
+  if( 0 == plan->dm_count ) { throw_getter_error(DEDISP_NO_DM_LIST_SET,0); }
+  if (dm_trial < 0 || dm_trial >= plan->dm_count ) { throw_getter_error(DEDISP_UNKNOWN_ERROR,0); }
+  return (plan->dm_list[dm_trial] * plan->delay_table[plan->nchans-1] + 0.5);
+}
 dedisp_size         dedisp_get_channel_count(const dedisp_plan plan) {
 	if( !plan ) { throw_getter_error(DEDISP_INVALID_PLAN,0); }
 	return plan->nchans;
@@ -548,7 +554,7 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	}
 	*/
 	
-	// Compute derived counts for maximum gulp size
+	// Compute derived counts for maximum gulp size [dedisp_word == 4 bytes]
 	dedisp_size nsamps_gulp_max = nsamps_computed_gulp_max + plan->max_delay;
 	dedisp_size chans_per_word  = sizeof(dedisp_word)*BITS_PER_BYTE / in_nbits;
 	dedisp_size nchan_words     = plan->nchans / chans_per_word;
@@ -570,6 +576,8 @@ dedisp_error dedisp_execute_guru(const dedisp_plan  plan,
 	// TODO: Make this a parameter?
 	dedisp_size min_in_nbits = 0;
 	if( plan->scrunching_enabled ) {
+		// TODO: This produces corrupt output when equal to 32 !
+		//         Also check whether the unpacker is broken when in_nbits=32 !
 		min_in_nbits = 16; //32;
 	}
 	dedisp_size unpacked_in_nbits = max((int)in_nbits, (int)min_in_nbits);

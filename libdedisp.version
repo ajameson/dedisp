@@ -12,6 +12,7 @@ VERS_1.1 {
                 dedisp_get_max_delay;
                 dedisp_get_channel_count;
                 dedisp_get_dm_count;
+                dedisp_get_dm_delay;
                 dedisp_get_dm_list;
                 dedisp_get_killmask;
                 dedisp_get_dt;

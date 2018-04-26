@@ -265,6 +265,11 @@ dedisp_float * dedisp_generate_dm_list_guru (dedisp_float dm_start, dedisp_float
  *  \note A DM list for \p plan must exist prior to calling this function.
  */
 dedisp_size         dedisp_get_max_delay(const dedisp_plan plan);
+/*! \p dedisp_get_dm_delay gets the delay for a dispersion trial.
+ * 
+ *  \return The delay in samples for a given dispersion trial.
+ */
+dedisp_size         dedisp_get_dm_delay(const dedisp_plan plan, int channel);
 /*! \p dedisp_get_channel_count gets the number of frequency channels in a plan.
  * 
  *  \return The number of frequency channels in \p plan.
