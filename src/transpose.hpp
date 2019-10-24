@@ -142,8 +142,8 @@ void transpose_kernel(const T* in,
 #pragma unroll
 	for( gpu_size_t i=0; i<Transpose<T>::TILE_DIM; i+=Transpose<T>::BLOCK_ROWS ) {
 		// TODO: Is it possible to cull some excess threads early?
-		//if( index_in_x < width && index_in_y+i < height )
-		tile[threadIdx.y+i][threadIdx.x] = in[index_in+i*in_stride];
+		if( index_in_x < width && index_in_y+i < height )
+		        tile[threadIdx.y+i][threadIdx.x] = in[index_in+i*in_stride];
 	}
 	
 	__syncthreads();
