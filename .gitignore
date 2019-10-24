@@ -1,0 +1,4 @@
+*.so
+lib/
+include/
+example/testdedisp
